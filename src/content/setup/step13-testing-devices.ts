@@ -85,18 +85,20 @@ eas build --profile development --platform ios
 
 ## 13.7 Debugging
 
-### React Native Debugger
+### React Native DevTools
 
 \`\`\`bash
-# В Metro bundler натисніть j — відкриє Chrome DevTools
-# Або використовуйте Flipper
+# В Metro bundler натисніть j — відкриє React Native DevTools
+# Або натисніть shift+m для меню інструментів
 \`\`\`
 
 ### Корисні інструменти
 
-- **React DevTools**: \`npx react-devtools\`
-- **Flipper**: Desktop app для React Native debugging
+- **React Native DevTools**: Вбудований debugger (SDK 52+), замінює Flipper
+- **React DevTools**: \`npx react-devtools\` — інспекція компонентів та props
 - **Reactotron**: Логування, state inspection, API monitoring
+
+> **Примітка**: Flipper deprecated починаючи з React Native 0.73+ та Expo SDK 51+. Використовуйте React Native DevTools замість нього.
 
 ### Console.log
 

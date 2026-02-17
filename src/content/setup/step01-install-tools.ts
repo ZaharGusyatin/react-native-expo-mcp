@@ -3,11 +3,11 @@ export function getStep01(): string {
 
 ## 1.1 Перевірка Node.js та npm
 
-React Native потребує **Node.js 18+** та **npm 9+**:
+React Native потребує **Node.js 20+** та **npm 10+**:
 
 \`\`\`bash
-node --version   # Очікується: v18.x.x або вище
-npm --version    # Очікується: 9.x.x або вище
+node --version   # Очікується: v20.x.x або вище
+npm --version    # Очікується: 10.x.x або вище
 \`\`\`
 
 Якщо не встановлено — завантажте з https://nodejs.org/ (рекомендовано LTS версію).
@@ -19,19 +19,19 @@ nvm use 20
 nvm alias default 20
 \`\`\`
 
-## 1.2 Встановлення Expo CLI та EAS CLI
+## 1.2 Встановлення EAS CLI
 
 \`\`\`bash
-npm install -g expo-cli eas-cli
+npm install -g eas-cli
 \`\`\`
 
 Перевірка:
 \`\`\`bash
-expo --version
+npx expo --version
 eas --version
 \`\`\`
 
-> Починаючи з Expo SDK 46+, глобальна установка \`expo-cli\` опціональна — більшість команд доступні через \`npx expo\`. Але EAS CLI потребує глобальної установки.
+> Глобальна установка \`expo-cli\` **не потрібна** — всі команди доступні через \`npx expo\`. Глобальний пакет \`expo-cli\` deprecated. Тільки EAS CLI потребує глобальної установки.
 
 Авторизуйтесь в Expo:
 \`\`\`bash
@@ -62,11 +62,12 @@ xcode-select --install
 \`\`\`bash
 # Встановіть Android Studio з https://developer.android.com/studio
 # Додайте до ~/.zshrc:
-export ANDROID_HOME=$HOME/Android/Sdk
+export ANDROID_HOME=$HOME/Library/Android/sdk    # macOS
+# Linux: export ANDROID_HOME=$HOME/Android/Sdk
 export PATH=$PATH:$ANDROID_HOME/emulator
 export PATH=$PATH:$ANDROID_HOME/platform-tools
 \`\`\`
 
-✅ **Checkpoint**: Node.js 18+, Expo CLI, EAS CLI встановлені
+✅ **Checkpoint**: Node.js 20+, EAS CLI встановлені, \`npx expo\` працює
 `;
 }

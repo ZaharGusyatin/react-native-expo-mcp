@@ -21,7 +21,7 @@ import { useCartStore } from '@store/cart';
 import { router } from 'expo-router';
 
 export default function CatalogRoute() {
-  const { data: products, isLoading, refetch } = useProducts();
+  const { data: products, isLoading, isRefetching, refetch } = useProducts();
   const addToCart = useCartStore((s) => s.addItem);
 
   const handleProductPress = (id: string) => {
@@ -32,6 +32,7 @@ export default function CatalogRoute() {
     <CatalogScreenUI
       products={products ?? []}
       isLoading={isLoading}
+      isRefreshing={isRefetching}
       onRefresh={refetch}
       onProductPress={handleProductPress}
       onAddToCart={addToCart}
@@ -63,7 +64,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export function CatalogScreen() {
   const navigation = useNavigation<NavigationProp>();
-  const { data: products, isLoading, refetch } = useProducts();
+  const { data: products, isLoading, isRefetching, refetch } = useProducts();
   const addToCart = useCartStore((s) => s.addItem);
 
   const handleProductPress = (id: string) => {
@@ -74,6 +75,7 @@ export function CatalogScreen() {
     <CatalogScreenUI
       products={products ?? []}
       isLoading={isLoading}
+      isRefreshing={isRefetching}
       onRefresh={refetch}
       onProductPress={handleProductPress}
       onAddToCart={addToCart}
@@ -195,11 +197,12 @@ ${routerSpecific}
 // Цей файл ІДЕНТИЧНИЙ для Expo Router та React Navigation
 import { View, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 import { ProductCard } from '@components/shared/ProductCard';
-import { Product } from '@types/product';
+import { Product } from '@app-types/product';
 
 interface Props {
   products: Product[];
   isLoading: boolean;
+  isRefreshing: boolean;
   onRefresh: () => void;
   onProductPress: (id: string) => void;
   onAddToCart: (product: Product) => void;
@@ -208,6 +211,7 @@ interface Props {
 export function CatalogScreenUI({
   products,
   isLoading,
+  isRefreshing,
   onRefresh,
   onProductPress,
   onAddToCart,
@@ -234,7 +238,7 @@ export function CatalogScreenUI({
       )}
       keyExtractor={(item) => item.id}
       refreshControl={
-        <RefreshControl refreshing={isLoading} onRefresh={onRefresh} />
+        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
       }
     />
   );

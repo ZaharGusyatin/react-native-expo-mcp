@@ -3,7 +3,7 @@ export function getComponents(): string {
 
 ## Pressable замість TouchableOpacity
 
-\`TouchableOpacity\` — застарілий. Використовуйте \`Pressable\`:
+\`TouchableOpacity\` — legacy компонент. Використовуйте \`Pressable\` (рекомендований для нової архітектури RN):
 
 \`\`\`tsx
 import { Pressable, Text } from 'react-native';

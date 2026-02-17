@@ -132,7 +132,7 @@ export default function CatalogRoute() {
 // src/screens/catalog/CatalogScreenUI.tsx — UI
 import { View, Text, FlatList, ActivityIndicator } from 'react-native';
 import { ProductCard } from '@components/shared/ProductCard';
-import { Product } from '@types/product';
+import { Product } from '@app-types/product';
 
 interface Props {
   products: Product[];
@@ -291,7 +291,7 @@ export function CatalogScreen() {
 // src/screens/catalog/CatalogScreenUI.tsx — UI
 import { View, FlatList, ActivityIndicator } from 'react-native';
 import { ProductCard } from '@components/shared/ProductCard';
-import { Product } from '@types/product';
+import { Product } from '@app-types/product';
 
 interface Props {
   products: Product[];

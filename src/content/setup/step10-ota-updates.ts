@@ -22,8 +22,7 @@ npx expo install expo-updates
   "expo": {
     "updates": {
       "enabled": true,
-      "checkAutomatically": "ON_LOAD",
-      "fallbackToCacheTimeout": 3000
+      "checkAutomatically": "ON_LOAD"
     },
     "runtimeVersion": {
       "policy": "appVersion"
@@ -73,6 +72,46 @@ development     → development
 
 ## 10.6 Програмна перевірка оновлень
 
+### Рекомендований підхід: useUpdates() hook
+
+\`\`\`tsx
+import { useUpdates } from 'expo-updates';
+
+function UpdateChecker() {
+  const {
+    currentlyRunning,
+    isUpdateAvailable,
+    isUpdatePending,
+    isChecking,
+    isDownloading,
+    availableUpdate,
+    checkError,
+    downloadError,
+  } = useUpdates();
+
+  useEffect(() => {
+    if (isUpdatePending) {
+      // Оновлення завантажено — перезапуск
+      Updates.reloadAsync();
+    }
+  }, [isUpdatePending]);
+
+  const handleCheckUpdate = () => {
+    Updates.checkForUpdateAsync();
+  };
+
+  const handleDownload = () => {
+    if (isUpdateAvailable) {
+      Updates.fetchUpdateAsync();
+    }
+  };
+
+  return null; // або UI для показу статусу оновлення
+}
+\`\`\`
+
+### Альтернатива: imperative API
+
 \`\`\`tsx
 import * as Updates from 'expo-updates';
 
@@ -113,7 +152,7 @@ eas update:republish --group <update-group-id>
 
 1. **Завжди тестуйте OTA на preview** перед production
 2. **Runtime version** — змінюйте при зміні нативного коду
-3. **Fallback timeout** — не ставте занадто великий (блокує запуск)
+3. **useUpdates() hook** — рекомендований підхід для реактивного відстеження оновлень
 4. **Моніторинг** — відстежуйте adoption rate через EAS dashboard
 
 ✅ **Checkpoint**: expo-updates налаштовано, OTA публікація працює через \`eas update\`

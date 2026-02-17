@@ -576,7 +576,7 @@ export const zustandStorage: StateStorage = {
       content: `import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { zustandStorage } from '@services/storage/mmkv';
-import { User } from '@types/auth';
+import { User } from '@app-types/auth';
 
 interface AuthState {
   user: User | null;

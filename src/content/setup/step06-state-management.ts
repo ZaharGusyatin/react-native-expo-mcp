@@ -172,7 +172,7 @@ const { user } = useAuthStore();
 Для множинних значень використовуйте \`useShallow\`:
 
 \`\`\`tsx
-import { useShallow } from 'zustand/react/shallow';
+import { useShallow } from 'zustand/shallow';
 
 const { user, isAuthenticated } = useAuthStore(
   useShallow((s) => ({ user: s.user, isAuthenticated: s.isAuthenticated }))

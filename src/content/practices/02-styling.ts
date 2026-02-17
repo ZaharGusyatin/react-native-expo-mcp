@@ -119,6 +119,45 @@ cssInterop(Svg, { className: 'style' });
 </View>
 \`\`\`
 
+## Комбінування класів (clsx + tailwind-merge)
+
+Для динамічного комбінування NativeWind класів використовуйте \`clsx\` або \`tailwind-merge\`:
+
+\`\`\`bash
+npx expo install clsx tailwind-merge
+\`\`\`
+
+\`\`\`tsx
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+// Утиліта для комбінування
+function cn(...inputs: (string | undefined | null | false)[]) {
+  return twMerge(clsx(inputs));
+}
+
+// Використання в компонентах
+interface CardProps {
+  className?: string;
+  highlighted?: boolean;
+  children: React.ReactNode;
+}
+
+function Card({ className, highlighted, children }: CardProps) {
+  return (
+    <View className={cn(
+      'rounded-2xl p-4 bg-surface',
+      highlighted && 'border-2 border-primary',
+      className  // дозволяє override ззовні
+    )}>
+      {children}
+    </View>
+  );
+}
+\`\`\`
+
+> \`clsx\` — умовне об'єднання класів. \`tailwind-merge\` — розумне злиття (пізніший клас переважає: \`cn('p-4', 'p-6')\` → \`'p-6'\`).
+
 ## Рекомендації
 
 1. **Уникайте StyleSheet.create** — використовуйте className для 90% стилів
@@ -126,5 +165,6 @@ cssInterop(Svg, { className: 'style' });
 3. **Використовуйте theme** замість хардкоду кольорів
 4. **cssInterop** для сторонніх компонентів
 5. **Константи** для значень, які потрібні в JS (наприклад, animation values)
+6. **clsx + tailwind-merge** для динамічного комбінування класів в компонентах
 `;
 }

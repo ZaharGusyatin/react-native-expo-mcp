@@ -96,7 +96,7 @@ export default apiClient;
 \`\`\`tsx
 // src/services/api/products.ts
 import apiClient from './client';
-import { Product } from '@types/product';
+import { Product } from '@app-types/product';
 
 export const productsApi = {
   getAll: async (): Promise<Product[]> => {

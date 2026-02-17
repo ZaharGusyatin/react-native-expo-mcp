@@ -71,16 +71,20 @@ src/constants/
 // package.json — scripts
 {
   "scripts": {
-    "env:dev": "cp env/env.dev.json env/env.json",
-    "env:staging": "cp env/env.staging.json env/env.json",
-    "env:prod": "cp env/env.prod.json env/env.json",
+    "env:dev": "node -e \\"require('fs').copyFileSync('env/env.dev.json','env/env.json')\\"",
+    "env:staging": "node -e \\"require('fs').copyFileSync('env/env.staging.json','env/env.json')\\"",
+    "env:prod": "node -e \\"require('fs').copyFileSync('env/env.prod.json','env/env.json')\\"",
     "prestart": "npm run env:dev",
     "start": "expo start"
   }
 }
 \`\`\`
 
+> Використовуємо \`node -e\` замість \`cp\` для кросплатформенності (macOS, Linux, Windows).
+
 ## 8.5 Config з типізацією
+
+> **Важливо**: Для імпорту JSON файлів додайте \`"resolveJsonModule": true\` в \`compilerOptions\` вашого \`tsconfig.json\`.
 
 \`\`\`tsx
 // src/constants/config.ts

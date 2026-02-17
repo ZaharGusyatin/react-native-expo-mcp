@@ -18,7 +18,7 @@ const { items, total } = useCartStore();
 ### useShallow для множинних значень
 
 \`\`\`tsx
-import { useShallow } from 'zustand/react/shallow';
+import { useShallow } from 'zustand/shallow';
 
 // ✅ Підписка на декілька полів з shallow comparison
 const { user, isAuthenticated } = useAuthStore(
@@ -39,19 +39,26 @@ useAuthStore.getState().logout();
 
 ### Derived state (computed values)
 
+Zustand не підтримує JS getters в store. Використовуйте **селектори** для computed values:
+
 \`\`\`tsx
-const useCartStore = create<CartState>()((set, get) => ({
+// ✅ Правильно — computed через селектори
+const useCartStore = create<CartState>()((set) => ({
   items: [],
-
-  // Computed через get()
-  get total() {
-    return get().items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  },
-
-  get itemCount() {
-    return get().items.reduce((sum, i) => sum + i.quantity, 0);
-  },
+  addItem: (item) => set((s) => ({ items: [...s.items, item] })),
+  removeItem: (id) => set((s) => ({ items: s.items.filter((i) => i.id !== id) })),
 }));
+
+// Computed селектори — визначайте окремо
+const selectTotal = (s: CartState) =>
+  s.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+
+const selectItemCount = (s: CartState) =>
+  s.items.reduce((sum, i) => sum + i.quantity, 0);
+
+// Використання в компонентах
+const total = useCartStore(selectTotal);
+const count = useCartStore(selectItemCount);
 \`\`\`
 
 ## Persist з MMKV

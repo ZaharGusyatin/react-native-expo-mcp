@@ -13,7 +13,7 @@ export function getPerformance(): string {
   initialNumToRender={10}        // Скільки рендерити спочатку
   maxToRenderPerBatch={5}        // Скільки рендерити за батч
   windowSize={5}                 // Viewport множник (5 = 2 екрани зверху + поточний + 2 знизу)
-  removeClippedSubviews={true}   // Знищувати offscreen views (Android)
+  removeClippedSubviews={true}   // Знищувати offscreen views (iOS та Android)
 
   // Обов'язково для однакових елементів
   getItemLayout={(data, index) => ({

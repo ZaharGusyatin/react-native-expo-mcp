@@ -92,9 +92,9 @@ env/env.prod.json
 ## Додати до package.json scripts
 \`\`\`json
 {
-  "env:dev": "cp env/env.dev.json env/env.json",
-  "env:staging": "cp env/env.staging.json env/env.json",
-  "env:prod": "cp env/env.prod.json env/env.json",
+  "env:dev": "node -e \\"require('fs').copyFileSync('env/env.dev.json','env/env.json')\\"",
+  "env:staging": "node -e \\"require('fs').copyFileSync('env/env.staging.json','env/env.json')\\"",
+  "env:prod": "node -e \\"require('fs').copyFileSync('env/env.prod.json','env/env.json')\\"",
   "prestart": "npm run env:dev"
 }
 \`\`\`

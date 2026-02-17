@@ -20,7 +20,7 @@ export function getStep03(): string {
       "@services/*": ["./src/services/*"],
       "@hooks/*": ["./src/hooks/*"],
       "@constants/*": ["./src/constants/*"],
-      "@types/*": ["./src/types/*"],
+      "@app-types/*": ["./src/types/*"],
       "@utils/*": ["./src/utils/*"]
     }
   },
@@ -34,7 +34,15 @@ export function getStep03(): string {
 
 ## 3.2 Path Aliases — Runtime Resolution
 
-TypeScript \`paths\` працюють тільки для type-checking. Для runtime потрібен \`babel-plugin-module-resolver\`:
+TypeScript \`paths\` працюють тільки для type-checking. Для runtime потрібен додатковий крок:
+
+### Expo Router (SDK 50+)
+
+Expo Router автоматично підтримує \`tsconfig.json\` paths через Metro resolver — **додатковий плагін не потрібен**. Просто налаштуйте paths у \`tsconfig.json\` (крок 3.1) і все працює.
+
+### React Navigation (або без Expo Router)
+
+Для проектів без Expo Router потрібен \`babel-plugin-module-resolver\`:
 
 \`\`\`bash
 npx expo install babel-plugin-module-resolver
@@ -60,7 +68,7 @@ module.exports = function (api) {
             '@services': './src/services',
             '@hooks': './src/hooks',
             '@constants': './src/constants',
-            '@types': './src/types',
+            '@app-types': './src/types',
             '@utils': './src/utils',
           },
         },
