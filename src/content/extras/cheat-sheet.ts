@@ -23,6 +23,8 @@ npx expo prebuild --clean       # Перегенерувати з нуля
 npx expo run:ios
 npx expo run:android
 npx expo run:ios --device        # На фізичному пристрої
+npx expo run:ios --port 8082     # Якщо порт 8081 зайнятий
+npx expo start --port 8082       # Dev server на іншому порті
 
 # Lint
 npx expo lint

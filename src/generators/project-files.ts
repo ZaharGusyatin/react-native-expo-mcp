@@ -27,6 +27,9 @@ export function generateProjectFiles(options: ProjectFilesOptions): string {
   // Common files (both routers)
   files.push(...getCommonFiles(appName));
 
+  // tsconfig.json with path aliases
+  files.push(getTsConfig(router));
+
   // Router-specific files
   if (router === "expo-router") {
     files.push(...getExpoRouterFiles(appName, features));
@@ -55,11 +58,34 @@ export function generateProjectFiles(options: ProjectFilesOptions): string {
     .map((f) => `## ${f.path}\n\`\`\`${getExt(f.path)}\n${f.content}\n\`\`\``)
     .join("\n\n");
 
+  const cleanupFiles = router === "expo-router"
+    ? `## Очистка шаблонних файлів
+
+Якщо проект створений через \`create-expo-app --template tabs\`, видаліть зайві файли шаблону:
+
+\`\`\`bash
+# Видалити старі шаблонні файли
+rm -f "app/(tabs)/two.tsx" app/modal.tsx app/+html.tsx
+rm -f components/EditScreenInfo.tsx components/StyledText.tsx components/Themed.tsx
+rm -f components/useClientOnlyValue.ts components/useClientOnlyValue.web.ts
+rm -f components/useColorScheme.ts components/useColorScheme.web.ts
+rm -f components/__tests__/StyledText-test.js
+rm -f constants/Colors.ts
+\`\`\`
+
+Також оновіть \`app/+not-found.tsx\` — замініть імпорт \`@/components/Themed\` на стандартний \`react-native\`:
+\`\`\`tsx
+import { Text, View } from 'react-native';
+\`\`\``
+    : "";
+
   return `# Starter файли для ${appName} (${router})
 
 Створіть наступні файли у вашому проекті:
 
 ${output}
+
+${cleanupFiles}
 
 ---
 
@@ -68,6 +94,7 @@ ${output}
 npm install
 npx expo prebuild --clean
 npx expo run:ios   # або npx expo run:android
+npx expo run:ios --port 8082   # якщо порт 8081 зайнятий
 \`\`\`
 
 > **Примітка:** Проект використовує \`react-native-mmkv\` — це нативний модуль, який **не підтримується в Expo Go**. Тому потрібен \`expo prebuild\` для генерації нативних проектів (ios/android), а запуск — через \`expo run:ios\` / \`expo run:android\`.
@@ -209,15 +236,42 @@ export interface AuthResponse {
   ];
 }
 
+function getTsConfig(router: Router): GeneratedFile {
+  const include = router === "expo-router"
+    ? `"**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts", "nativewind-env.d.ts"`
+    : `"**/*.ts", "**/*.tsx", "nativewind-env.d.ts"`;
+
+  return {
+    path: "tsconfig.json",
+    content: `{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "@/*": ["./*"],
+      "@store/*": ["./src/store/*"],
+      "@components/*": ["./src/components/*"],
+      "@constants/*": ["./src/constants/*"],
+      "@services/*": ["./src/services/*"],
+      "@app-types/*": ["./src/types/*"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@screens/*": ["./src/screens/*"],
+      "@utils/*": ["./src/utils/*"]
+    }
+  },
+  "include": [${include}]
+}`,
+  };
+}
+
 function getExpoRouterFiles(appName: string, features: string[]): GeneratedFile[] {
   return [
     {
       path: "app/_layout.tsx",
-      content: `import { Stack } from 'expo-router';
+      content: `import { Stack, useRouter, useSegments, useNavigationContainerRef } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '@store/auth';
-import { useRouter, useSegments, useRootNavigationState } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import "../global.css";
 
 const queryClient = new QueryClient({
@@ -226,14 +280,20 @@ const queryClient = new QueryClient({
   },
 });
 
-function AuthGuard({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+function useProtectedRoute(isAuthenticated: boolean) {
   const segments = useSegments();
   const router = useRouter();
-  const navigationState = useRootNavigationState();
+  const navigationRef = useNavigationContainerRef();
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (!navigationState?.key) return;
+    if (navigationRef?.isReady()) {
+      setIsReady(true);
+    }
+  }, [navigationRef?.isReady()]);
+
+  useEffect(() => {
+    if (!isReady) return;
 
     const inAuthGroup = segments[0] === '(auth)';
     if (!isAuthenticated && !inAuthGroup) {
@@ -241,20 +301,19 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     } else if (isAuthenticated && inAuthGroup) {
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated, segments, navigationState?.key]);
-
-  return <>{children}</>;
+  }, [isAuthenticated, segments, isReady]);
 }
 
 export default function RootLayout() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  useProtectedRoute(isAuthenticated);
+
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthGuard>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-        </Stack>
-      </AuthGuard>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
+      </Stack>
     </QueryClientProvider>
   );
 }`,
@@ -371,6 +430,94 @@ export default function HomeRoute() {
   );
 }`,
     },
+    {
+      path: "app/(tabs)/catalog.tsx",
+      content: `import { View, Text } from 'react-native';
+
+export default function CatalogRoute() {
+  return (
+    <View className="flex-1 bg-background items-center justify-center p-6">
+      <Text className="text-2xl font-bold">Каталог</Text>
+      <Text className="text-gray-500 mt-2">Тут буде список товарів</Text>
+    </View>
+  );
+}`,
+    },
+    {
+      path: "app/(tabs)/profile.tsx",
+      content: `import { View, Text } from 'react-native';
+import { useAuthStore } from '@store/auth';
+import { Button } from '@components/ui/Button';
+
+export default function ProfileRoute() {
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+
+  return (
+    <View className="flex-1 bg-background items-center justify-center p-6">
+      <Text className="text-2xl font-bold">{user?.name ?? 'Guest'}</Text>
+      <Text className="text-gray-500 mt-2">{user?.email ?? ''}</Text>
+      <View className="mt-8 w-full">
+        <Button title="Вийти" variant="outline" onPress={logout} />
+      </View>
+    </View>
+  );
+}`,
+    },
+    {
+      path: "app/(auth)/register.tsx",
+      content: `import { View, Text, TextInput } from 'react-native';
+import { useState } from 'react';
+import { useAuthStore } from '@store/auth';
+import { Button } from '@components/ui/Button';
+import { router } from 'expo-router';
+
+export default function RegisterRoute() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const setAuth = useAuthStore((s) => s.setAuth);
+
+  const handleRegister = () => {
+    // TODO: Replace with actual API call
+    setAuth({ id: '1', email, name }, 'mock-token');
+  };
+
+  return (
+    <View className="flex-1 bg-background justify-center px-6">
+      <Text className="text-3xl font-bold text-center mb-8">Реєстрація</Text>
+      <TextInput
+        className="bg-surface rounded-xl px-4 py-3 mb-3 text-base"
+        placeholder="Ім'я"
+        value={name}
+        onChangeText={setName}
+      />
+      <TextInput
+        className="bg-surface rounded-xl px-4 py-3 mb-3 text-base"
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        keyboardType="email-address"
+      />
+      <TextInput
+        className="bg-surface rounded-xl px-4 py-3 mb-6 text-base"
+        placeholder="Пароль"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+      <Button title="Зареєструватись" onPress={handleRegister} />
+      <Text
+        className="text-primary text-center mt-4"
+        onPress={() => router.back()}
+      >
+        Вже є акаунт? Увійти
+      </Text>
+    </View>
+  );
+}`,
+    },
   ];
 }
 
@@ -452,6 +599,7 @@ export function AppNavigator() {
       path: "src/navigation/AuthNavigator.tsx",
       content: `import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { LoginScreen } from '@screens/auth/LoginScreen';
+import { RegisterScreen } from '@screens/auth/RegisterScreen';
 import type { AuthStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
@@ -460,6 +608,7 @@ export function AuthNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
     </Stack.Navigator>
   );
 }`,
@@ -516,6 +665,7 @@ export function MainNavigator() {
       path: "src/screens/auth/LoginScreen.tsx",
       content: `import { View, Text, TextInput } from 'react-native';
 import { useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '@store/auth';
 import { Button } from '@components/ui/Button';
 
@@ -523,6 +673,7 @@ export function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const setAuth = useAuthStore((s) => s.setAuth);
+  const navigation = useNavigation();
 
   const handleLogin = () => {
     // TODO: Replace with actual API call
@@ -548,6 +699,117 @@ export function LoginScreen() {
         secureTextEntry
       />
       <Button title="Увійти" onPress={handleLogin} />
+      <Text
+        className="text-primary text-center mt-4"
+        onPress={() => navigation.navigate('Register' as never)}
+      >
+        Немає акаунту? Зареєструватись
+      </Text>
+    </View>
+  );
+}`,
+    },
+    {
+      path: "src/screens/auth/RegisterScreen.tsx",
+      content: `import { View, Text, TextInput } from 'react-native';
+import { useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { useAuthStore } from '@store/auth';
+import { Button } from '@components/ui/Button';
+
+export function RegisterScreen() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const setAuth = useAuthStore((s) => s.setAuth);
+  const navigation = useNavigation();
+
+  const handleRegister = () => {
+    // TODO: Replace with actual API call
+    setAuth({ id: '1', email, name }, 'mock-token');
+  };
+
+  return (
+    <View className="flex-1 bg-background justify-center px-6">
+      <Text className="text-3xl font-bold text-center mb-8">Реєстрація</Text>
+      <TextInput
+        className="bg-surface rounded-xl px-4 py-3 mb-3 text-base"
+        placeholder="Ім'я"
+        value={name}
+        onChangeText={setName}
+      />
+      <TextInput
+        className="bg-surface rounded-xl px-4 py-3 mb-3 text-base"
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        keyboardType="email-address"
+      />
+      <TextInput
+        className="bg-surface rounded-xl px-4 py-3 mb-6 text-base"
+        placeholder="Пароль"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+      <Button title="Зареєструватись" onPress={handleRegister} />
+      <Text
+        className="text-primary text-center mt-4"
+        onPress={() => navigation.goBack()}
+      >
+        Вже є акаунт? Увійти
+      </Text>
+    </View>
+  );
+}`,
+    },
+    {
+      path: "src/screens/home/HomeScreen.tsx",
+      content: `import { View, Text } from 'react-native';
+import { useAuthStore } from '@store/auth';
+
+export function HomeScreen() {
+  const user = useAuthStore((s) => s.user);
+
+  return (
+    <View className="flex-1 bg-background items-center justify-center p-6">
+      <Text className="text-2xl font-bold">Привіт, {user?.name ?? 'Guest'}!</Text>
+      <Text className="text-gray-500 mt-2">Ласкаво просимо до ${appName}</Text>
+    </View>
+  );
+}`,
+    },
+    {
+      path: "src/screens/catalog/CatalogScreen.tsx",
+      content: `import { View, Text } from 'react-native';
+
+export function CatalogScreen() {
+  return (
+    <View className="flex-1 bg-background items-center justify-center p-6">
+      <Text className="text-2xl font-bold">Каталог</Text>
+      <Text className="text-gray-500 mt-2">Тут буде список товарів</Text>
+    </View>
+  );
+}`,
+    },
+    {
+      path: "src/screens/profile/ProfileScreen.tsx",
+      content: `import { View, Text } from 'react-native';
+import { useAuthStore } from '@store/auth';
+import { Button } from '@components/ui/Button';
+
+export function ProfileScreen() {
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+
+  return (
+    <View className="flex-1 bg-background items-center justify-center p-6">
+      <Text className="text-2xl font-bold">{user?.name ?? 'Guest'}</Text>
+      <Text className="text-gray-500 mt-2">{user?.email ?? ''}</Text>
+      <View className="mt-8 w-full">
+        <Button title="Вийти" variant="outline" onPress={logout} />
+      </View>
     </View>
   );
 }`,
