@@ -66,8 +66,11 @@ ${output}
 Після створення файлів:
 \`\`\`bash
 npm install
-npx expo start --clear
+npx expo prebuild --clean
+npx expo run:ios   # або npx expo run:android
 \`\`\`
+
+> **Примітка:** Проект використовує \`react-native-mmkv\` — це нативний модуль, який **не підтримується в Expo Go**. Тому потрібен \`expo prebuild\` для генерації нативних проектів (ios/android), а запуск — через \`expo run:ios\` / \`expo run:android\`.
 `;
 }
 
@@ -213,7 +216,7 @@ function getExpoRouterFiles(appName: string, features: string[]): GeneratedFile[
       content: `import { Stack } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '@store/auth';
-import { useRouter, useSegments } from 'expo-router';
+import { useRouter, useSegments, useRootNavigationState } from 'expo-router';
 import { useEffect } from 'react';
 import "../global.css";
 
@@ -227,15 +230,18 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const segments = useSegments();
   const router = useRouter();
+  const navigationState = useRootNavigationState();
 
   useEffect(() => {
+    if (!navigationState?.key) return;
+
     const inAuthGroup = segments[0] === '(auth)';
     if (!isAuthenticated && !inAuthGroup) {
       router.replace('/(auth)/login');
     } else if (isAuthenticated && inAuthGroup) {
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated, segments]);
+  }, [isAuthenticated, segments, navigationState?.key]);
 
   return <>{children}</>;
 }
@@ -556,18 +562,25 @@ function getStoreFiles(): GeneratedFile[] {
       content: `import { MMKV } from 'react-native-mmkv';
 import { StateStorage } from 'zustand/middleware';
 
-export const storage = new MMKV();
+let _storage: MMKV | null = null;
+
+function getStorage(): MMKV {
+  if (!_storage) {
+    _storage = new MMKV();
+  }
+  return _storage;
+}
 
 export const zustandStorage: StateStorage = {
   getItem: (name: string) => {
-    const value = storage.getString(name);
+    const value = getStorage().getString(name);
     return value ?? null;
   },
   setItem: (name: string, value: string) => {
-    storage.set(name, value);
+    getStorage().set(name, value);
   },
   removeItem: (name: string) => {
-    storage.delete(name);
+    getStorage().delete(name);
   },
 };`,
     },
