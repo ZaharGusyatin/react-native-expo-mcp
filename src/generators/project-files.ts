@@ -91,6 +91,7 @@ ${cleanupFiles}
 
 Після створення файлів:
 \`\`\`bash
+npm install babel-plugin-module-resolver babel-plugin-react-compiler
 npm install
 npx expo prebuild --clean
 npx expo run:ios   # або npx expo run:android
@@ -210,6 +211,36 @@ export function Button({ title, onPress, variant = 'primary', disabled }: Button
     </Pressable>
   );
 }`,
+    },
+    {
+      path: "babel.config.js",
+      content: `module.exports = function (api) {
+  api.cache(true);
+  return {
+    presets: ['babel-preset-expo'],
+    plugins: [
+      'react-compiler/babel',
+      'nativewind/babel',
+      [
+        'module-resolver',
+        {
+          root: ['./'],
+          alias: {
+            '@': './src',
+            '@store': './src/store',
+            '@components': './src/components',
+            '@constants': './src/constants',
+            '@services': './src/services',
+            '@app-types': './src/types',
+            '@hooks': './src/hooks',
+            '@screens': './src/screens',
+            '@utils': './src/utils',
+          },
+        },
+      ],
+    ],
+  };
+};`,
     },
     {
       path: "src/types/auth.ts",
