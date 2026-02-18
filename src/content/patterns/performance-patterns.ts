@@ -1,38 +1,33 @@
-export function getPerformancePatterns(): string {
+export const getPerformancePatterns = (): string => {
   return `# Performance Patterns
 
-## FlatList Optimization
+## List Components
 
-For any list, use FlatList or FlashList. NEVER \`ScrollView\` + \`.map()\`.
+For any list — use a performant list component. NEVER \`ScrollView\` + \`.map()\`.
+
+### LegendList — Recommended
+
+LegendList is the modern choice for React Native (New Architecture, JavaScript-only, no native modules needed).
 
 \`\`\`tsx
+import { LegendList } from '@legendapp/list';
+
 const ITEM_HEIGHT = 80;
 
-<FlatList
+<LegendList
   data={items}
   keyExtractor={(item) => item.id}
   renderItem={({ item }) => <Card {...item} />}
-
-  // Performance props
-  getItemLayout={(_, index) => ({
-    length: ITEM_HEIGHT,
-    offset: ITEM_HEIGHT * index,
-    index,
-  })}
-  windowSize={10}
-  maxToRenderPerBatch={10}
-  removeClippedSubviews={true}
-  initialNumToRender={10}
+  estimatedItemSize={ITEM_HEIGHT}
+  recycleItems   // enables item recycling for better performance
 />
 \`\`\`
 
-### getItemLayout
+**estimatedItemSize** is required. If items have variable heights — use the average value.
 
-The most important FlatList optimization. If the item height is fixed or predictable — always provide \`getItemLayout\`. This removes the need to measure layouts and significantly speeds up scrolling.
+### FlashList — Battle-tested Alternative
 
-## FlashList — Recommended over FlatList
-
-FlashList from Shopify is a drop-in replacement for FlatList with much better performance. Uses recycling instead of unmount/mount.
+FlashList from Shopify is a drop-in replacement for FlatList. Uses item recycling.
 
 \`\`\`tsx
 import { FlashList } from '@shopify/flash-list';
@@ -45,16 +40,30 @@ import { FlashList } from '@shopify/flash-list';
 />
 \`\`\`
 
-**estimatedItemSize** is required. If items have variable heights — use the average value.
-
-FlashList vs FlatList:
+FlashList vs FlatList (Flashlist benchmark):
 - FlashList: score 68/100, ~56 FPS stable
 - FlatList: score 25/100, visible FPS drops
-- FlashList uses recycling instead of mount/unmount — less memory allocation
 
-### LegendList
+### FlatList — Fallback
 
-LegendList is a newer alternative (JavaScript-only, New Architecture). In beta, but worth watching.
+Use when LegendList/FlashList are not an option. Key optimization: always provide \`getItemLayout\` for fixed-height items.
+
+\`\`\`tsx
+<FlatList
+  data={items}
+  keyExtractor={(item) => item.id}
+  renderItem={({ item }) => <Card {...item} />}
+  getItemLayout={(_, index) => ({
+    length: ITEM_HEIGHT,
+    offset: ITEM_HEIGHT * index,
+    index,
+  })}
+  windowSize={10}
+  maxToRenderPerBatch={10}
+  removeClippedSubviews={true}
+  initialNumToRender={10}
+/>
+\`\`\`
 
 ## Image Optimization
 
@@ -231,8 +240,8 @@ Worklets run on the UI thread — the JS thread is not blocked. Critical for 60+
 
 ## Performance Checklist
 
-- [ ] Lists: FlatList/FlashList (NOT ScrollView + map)
-- [ ] getItemLayout for FlatList (if height is fixed)
+- [ ] Lists: LegendList / FlashList (NOT ScrollView + map)
+- [ ] estimatedItemSize for LegendList/FlashList; getItemLayout for FlatList
 - [ ] React.memo for list items
 - [ ] expo-image instead of Image (caching, blurhash)
 - [ ] WebP format for images

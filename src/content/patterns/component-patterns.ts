@@ -1,4 +1,4 @@
-export function getComponentPatterns(): string {
+export const getComponentPatterns = (): string => {
   return `# Component Patterns
 
 ## Pressable Instead of TouchableOpacity
@@ -119,36 +119,53 @@ If the compiler is not set up or React < 19 — use \`useCallback\` for handler 
 
 ## Composable Components
 
-Break complex components into composable parts with clear prop interfaces.
+Break complex components into smaller focused components with clear prop interfaces. Each sub-component does one thing.
 
 \`\`\`tsx
-// BAD: One large component with all logic
+// BAD: One large component with all props mixed together
 const ProductCard = ({ product, onBuy, onFavorite, onShare, showRating, showPrice }) => {
-  // 200 lines of code...
+  // 200 lines of mixed UI...
 };
 
-// GOOD: Composable pattern (Product.Image / Product.Title)
-const ProductCard = ({ children }: { children: React.ReactNode }) => (
+// GOOD: Split into focused components
+type ProductCardProps = {
+  children: React.ReactNode;
+};
+
+const ProductCard = ({ children }: ProductCardProps) => (
   <View className="bg-white rounded-xl p-4 shadow-sm">{children}</View>
 );
 
-ProductCard.Image = ({ uri }: { uri: string }) => (
+type ProductCardImageProps = {
+  uri: string;
+};
+
+const ProductCardImage = ({ uri }: ProductCardImageProps) => (
   <Image source={{ uri }} className="w-full h-48 rounded-lg" contentFit="cover" />
 );
 
-ProductCard.Title = ({ children }: { children: string }) => (
+type ProductCardTitleProps = {
+  children: string;
+};
+
+const ProductCardTitle = ({ children }: ProductCardTitleProps) => (
   <Text className="text-lg font-bold mt-2">{children}</Text>
 );
 
-ProductCard.Price = ({ amount, currency = 'USD' }: { amount: number; currency?: string }) => (
+type ProductCardPriceProps = {
+  amount: number;
+  currency?: string;
+};
+
+const ProductCardPrice = ({ amount, currency = 'USD' }: ProductCardPriceProps) => (
   <Text className="text-primary font-semibold">{currency} {amount}</Text>
 );
 
-// Usage
+// Usage — compose as needed
 <ProductCard>
-  <ProductCard.Image uri={product.imageUrl} />
-  <ProductCard.Title>{product.name}</ProductCard.Title>
-  <ProductCard.Price amount={product.price} />
+  <ProductCardImage uri={product.imageUrl} />
+  <ProductCardTitle>{product.name}</ProductCardTitle>
+  <ProductCardPrice amount={product.price} />
 </ProductCard>
 \`\`\`
 

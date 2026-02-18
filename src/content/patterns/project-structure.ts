@@ -1,4 +1,4 @@
-export function getProjectStructure(): string {
+export const getProjectStructure = (): string => {
   return `# Project Structure
 
 ## Full Folder Tree

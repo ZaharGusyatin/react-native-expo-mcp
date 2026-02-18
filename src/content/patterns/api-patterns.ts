@@ -1,4 +1,4 @@
-export function getApiPatterns(): string {
+export const getApiPatterns = (): string => {
   return `# API Patterns (Axios + TanStack Query)
 
 ## Axios Client with Interceptors
@@ -96,6 +96,8 @@ export const productService = {
 
 ## TanStack Query — Custom Hooks
 
+> **Version note**: Examples below use **TanStack Query v5** (current). See diff at the bottom if your project uses v4.
+
 Always create custom hooks for TanStack Query. Do NOT use useQuery/useMutation directly in components.
 
 ### useQuery for Reading
@@ -132,14 +134,22 @@ import { useAuthStore } from '@/store/auth';
 export const useLogin = () => {
   const login = useAuthStore((s) => s.login);
 
+  // v5: onSuccess/onError are called at the call site (mutate), not here
   return useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       authService.login(email, password),
-    onSuccess: (data) => {
-      login(data.token, data.user);
-    },
   });
 };
+
+// Usage in route file:
+const loginMutation = useLogin();
+loginMutation.mutate(
+  { email, password },
+  {
+    onSuccess: (data) => login(data.token, data.user), // v5: callbacks here
+    onError: () => alert('Login failed'),
+  }
+);
 \`\`\`
 
 ### Usage in a Route File
@@ -150,18 +160,28 @@ import CatalogScreenUI from '@/screens/CatalogScreenUI';
 import { useProducts } from '@/hooks/useProducts';
 
 export default function CatalogRoute() {
-  const { data, isLoading, error, refetch } = useProducts();
+  const { data, isPending, error, refetch } = useProducts();
+  // v5: isPending (not isLoading) for queries without data yet
 
   return (
     <CatalogScreenUI
       products={data?.items ?? []}
-      isLoading={isLoading}
+      isLoading={isPending}
       error={error?.message}
       onRefresh={refetch}
     />
   );
 }
 \`\`\`
+
+### v4 vs v5 Key Differences
+
+| Feature | v4 | v5 |
+|---|---|---|
+| Loading state | \`isLoading\` | \`isPending\` (for no-data state) |
+| Cache eviction option | \`cacheTime\` | \`gcTime\` |
+| Mutation callbacks | \`onSuccess\`/\`onError\` in \`useMutation({})\` | In \`mutate(data, { onSuccess, onError })\` |
+| Query options object | separate \`useQuery(key, fn, options)\` | merged \`useQuery({ queryKey, queryFn, ...options })\` |
 
 ## Query Key Conventions
 
@@ -192,6 +212,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes — data is considered fresh
+      gcTime: 1000 * 60 * 10,   // 10 min before inactive cache is evicted (v5: gcTime, v4: cacheTime)
       retry: 2,                  // 2 retries on error
       refetchOnWindowFocus: false, // Don't refetch on focus (mobile app)
     },

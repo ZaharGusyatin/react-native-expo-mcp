@@ -1,4 +1,4 @@
-export function getMemoryOptimization(): string {
+export const getMemoryOptimization = (): string => {
   return `# Memory Optimization
 
 ## useEffect Cleanup — Always Return a Cleanup Function

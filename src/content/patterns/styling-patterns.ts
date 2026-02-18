@@ -1,4 +1,4 @@
-export function getStylingPatterns(): string {
+export const getStylingPatterns = (): string => {
   return `# Styling Patterns (NativeWind / Tailwind CSS)
 
 ## NativeWind — Recommended Approach

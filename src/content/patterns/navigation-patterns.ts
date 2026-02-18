@@ -1,4 +1,4 @@
-export function getNavigationPatterns(): string {
+export const getNavigationPatterns = (): string => {
   return `# Navigation Patterns (Expo Router)
 
 ## File-based Routing

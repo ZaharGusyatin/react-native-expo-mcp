@@ -1,4 +1,4 @@
-export function getSetupNewProject(): string {
+export const getSetupNewProject = (): string => {
   return `# Setting Up a New Expo + React Native Project
 
 ## Prerequisites

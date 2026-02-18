@@ -1,4 +1,4 @@
-export function getTypescriptPatterns(): string {
+export const getTypescriptPatterns = (): string => {
   return `# TypeScript Patterns
 
 ## Strict Mode Configuration

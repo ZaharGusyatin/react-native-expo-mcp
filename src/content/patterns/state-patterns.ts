@@ -1,4 +1,4 @@
-export function getStatePatterns(): string {
+export const getStatePatterns = (): string => {
   return `# State Management Patterns (Zustand + MMKV)
 
 ## Why Zustand

@@ -1,4 +1,4 @@
-export function getScreenArchitecture(): string {
+export const getScreenArchitecture = (): string => {
   return `# Screen Architecture: Logic/UI Separation
 
 ## The Core Rule
