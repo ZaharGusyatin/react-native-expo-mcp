@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.0.2] - 2026-02-18
+
+### Added
+- `docs/` folder with source reference documents: `best-practices.md`, `setup-tutorial.md`, `callstack-optimization.md`
+- README: full rewrite in English — two usage options (MCP server vs read docs directly), tools table, how automatic tool calling works
+
+### Changed
+- `.gitignore`: added `.idea/`, `.vscode/`, `.claude/`, `thoughts/`, original source filenames
+
+---
+
+## [2.0.1] - 2026-02-18
+
+### Changed
+- All `export function` → `export const` arrow functions in all pattern files and `setup-project.ts`
+- `get-performance-patterns`: LegendList promoted to primary recommendation; FlashList as battle-tested alternative; FlatList as fallback
+- `get-component-patterns`: replaced dot-notation composable pattern (`ProductCard.Image`) with named components (`ProductCardImage`, `ProductCardTitle`)
+- `get-api-patterns`: added TanStack Query v4 vs v5 diff table (`isPending`, `gcTime`, `onSuccess` location); added `gcTime` to QueryClient config with version note
+
+---
+
 ## [2.0.0] - 2026-02-18
 
 ### Breaking Changes
