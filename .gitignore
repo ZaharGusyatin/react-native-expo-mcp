@@ -3,3 +3,18 @@ dist/
 *.tsbuildinfo
 .env
 .env.*
+
+# IDE
+.idea/
+.vscode/
+
+# Claude Code local config
+.claude/
+
+# Original source files (copied to docs/ with clean names)
+\[React Native\] Best Practices.md
+\[React Native\] Setup Tutorial.md
+Callstack_The_Ultimate_Guide_to_React_Native_Optimization_2025.md
+
+# Plans/thoughts (local only)
+thoughts/
