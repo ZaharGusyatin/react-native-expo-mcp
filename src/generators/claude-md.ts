@@ -1,27 +1,25 @@
-import { Router } from "../utils/format.js";
-
 interface ClaudeMdOptions {
   appName: string;
-  router: Router;
+  router?: string; // kept for API compatibility, always uses Expo Router
   appDescription?: string;
   features?: string[];
 }
 
 export function generateClaudeMd(options: ClaudeMdOptions): string {
-  const { appName, router, appDescription, features } = options;
+  const { appName, appDescription, features } = options;
 
   const descriptionSection = appDescription
-    ? `\n## Опис\n${appDescription}\n`
+    ? `\n## Description\n${appDescription}\n`
     : "";
 
-  const featuresSection = features && features.length > 0
-    ? `\n## Основні фічі\n${features.map((f) => `- ${f}`).join("\n")}\n`
-    : "";
+  const featuresSection =
+    features && features.length > 0
+      ? `\n## Features\n${features.map((f) => `- ${f}`).join("\n")}\n`
+      : "";
 
-  if (router === "expo-router") {
-    return `# ${appName}
+  return `# ${appName}
 ${descriptionSection}${featuresSection}
-## Стек технологій
+## Tech Stack
 
 - **Framework**: Expo (Managed Workflow)
 - **Navigation**: Expo Router (file-based routing)
@@ -29,191 +27,112 @@ ${descriptionSection}${featuresSection}
 - **Styling**: NativeWind v4 (Tailwind CSS)
 - **State Management**: Zustand + MMKV (persist)
 - **API**: Axios + TanStack Query
-- **Forms**: React Hook Form + Zod
 - **Build**: EAS Build + OTA Updates
 
-## Архітектура
+## Architecture
 
 ### File-based Routing (Expo Router)
-- Файли в \`app/\` = маршрути
-- \`app/_layout.tsx\` = root layout (providers)
-- \`app/(tabs)/\` = tab navigator
-- \`app/(auth)/\` = auth screens (stack)
+- Files in \`app/\` = routes
+- \`app/_layout.tsx\` = root layout (providers, auth guard)
+- \`app/(tabs)/\` = tab navigator group
+- \`app/(auth)/\` = auth screens group
 
-### Logic/UI Separation
-- **Route файл** (\`app/*.tsx\`) = контейнер (логіка, hooks, handlers)
-- **Screen UI** (\`src/screens/*UI.tsx\`) = чистий UI (props-driven)
-- UI компоненти НЕ залежать від навігації
+### Logic/UI Separation — THE CORE RULE
+- **Route file** (\`app/*.tsx\`) = logic container (hooks, store access, handlers, navigation)
+- **Screen UI** (\`src/screens/*UI.tsx\`) = pure UI (props-driven, no store/API/navigation)
+- UI components do NOT import router, store, or API — everything via props
 
-### Структура проекту
+### Project Structure
 \`\`\`
-app/                    # Routes (Expo Router)
-├── _layout.tsx         # Root layout
-├── (auth)/             # Auth group
-│   └── login.tsx       # Login route (логіка)
-├── (tabs)/             # Tab navigator
-│   ├── _layout.tsx     # Tab config
-│   ├── index.tsx       # Home tab
-│   └── catalog.tsx     # Catalog tab
-└── (tabs)/product/
-    └── [id].tsx        # Dynamic route
+app/                    # Expo Router routes
+├── _layout.tsx         # Root layout (providers + auth guard)
+├── (auth)/
+│   ├── _layout.tsx     # Auth stack
+│   └── login.tsx       # LoginRoute (logic only)
+└── (tabs)/
+    ├── _layout.tsx     # Tab bar
+    ├── index.tsx       # HomeRoute
+    └── catalog.tsx     # CatalogRoute
 
 src/
-├── screens/            # Screen UI компоненти
-├── components/         # Shared UI
-│   ├── ui/             # Button, Input, Card
-│   └── shared/         # ProductCard, etc.
-├── store/              # Zustand stores
-├── services/api/       # Axios client + API calls
-├── hooks/              # Custom hooks (TanStack Query)
-├── constants/          # Colors, config
-├── types/              # TypeScript types
-└── utils/              # Helpers
+├── screens/            # Screen UI components (pure UI)
+│   ├── LoginScreenUI.tsx
+│   └── CatalogScreenUI.tsx
+├── components/
+│   └── ui/             # Button, TextInput, Card, Avatar
+├── store/              # Zustand stores (auth.ts, cart.ts)
+├── services/
+│   ├── api/            # Axios client + domain services
+│   └── storage/        # MMKV adapter (mmkv.ts)
+├── hooks/              # TanStack Query hooks (useProducts, useAuth)
+├── constants/          # colors.ts, layout.ts, config.ts
+├── types/              # TypeScript types (models.ts, api.ts)
+└── utils/              # Pure helpers (validators, formatters)
 \`\`\`
 
-## Правила коду
+## MCP Tool Usage
 
-### Компоненти
-- Використовуй \`Pressable\` замість \`TouchableOpacity\`
-- Використовуй \`expo-image\` замість \`Image\`
-- Використовуй \`className\` (NativeWind) для стилів
-- \`React.memo\` для list items
-- Composable pattern для складних компонентів
+This project uses the \`react-native-expo-mcp\` server. Claude should call these tools automatically:
+
+| When you are... | Call this tool |
+|---|---|
+| Creating a component, button, card, list item | \`get-component-patterns\` |
+| Creating a new screen or route | \`get-screen-architecture\` |
+| Working with navigation, routes, or auth guard | \`get-navigation-patterns\` |
+| Creating a Zustand store or working with global state | \`get-state-patterns\` |
+| Creating API services or data fetching hooks | \`get-api-patterns\` |
+| Styling components with NativeWind | \`get-styling-patterns\` |
+| Optimizing lists, images, bundle, or animations | \`get-performance-patterns\` |
+| Deciding where to place a new file | \`get-project-structure\` |
+| Writing TypeScript types or interfaces | \`get-typescript-patterns\` |
+| Debugging memory leaks or performance issues | \`get-memory-optimization\` |
+
+## Code Rules
+
+### Components
+- Use \`Pressable\` instead of \`TouchableOpacity\`
+- Use \`expo-image\` instead of \`Image\`
+- Use \`className\` (NativeWind) for styles
+- \`React.memo\` for list item components
+- Composable pattern for complex components (ProductCard.Image, ProductCard.Title)
 
 ### State Management
-- **Zustand** для client state (auth, cart, settings)
-- **TanStack Query** для server state (products, orders)
-- Завжди використовуй **селектори**: \`useStore((s) => s.field)\`
-- \`useShallow\` для множинних значень
-- MMKV persist для auth та settings
+- **Zustand** for client state (auth, cart, preferences)
+- **TanStack Query** for server state (products, orders, profiles)
+- Always use **selectors**: \`useStore((s) => s.field)\` — never destructure the whole store
+- \`useShallow\` for multiple values from one store
+- MMKV persistence for auth and user preferences
 
 ### API
-- Axios instance з interceptors (auth token, 401 handling)
-- TanStack Query hooks для data fetching
-- Query key conventions: \`['entity', ...params]\`
+- Axios instance with interceptors (auth token injection, 401 auto-logout)
+- Domain-grouped services: \`authService\`, \`productService\`
+- Custom TanStack Query hooks: \`useProducts\`, \`useLogin\` — never call \`useQuery\` directly in components
+- Query key convention: \`['entity', ...params]\`
 
 ### Navigation
-- \`router.push()\` для навігації
-- \`useLocalSearchParams()\` для параметрів
-- Protected routes в \`_layout.tsx\`
-- Deep linking працює автоматично
+- \`router.push()\` / \`router.replace()\` for navigation
+- \`useLocalSearchParams<T>()\` for typed route params
+- AuthGuard in root \`_layout.tsx\` — wait for \`navigationRef.isReady()\`
+- Deep linking works automatically via file structure
 
 ### TypeScript
-- Strict mode завжди
-- Ніяких \`any\` (максимум \`unknown\` з type guard)
-- Типізовані route params
-- Path aliases: \`@/\`, \`@components/\`, \`@store/\`, etc.
+- Strict mode always enabled
+- No \`any\` (use \`unknown\` with type guard if needed)
+- Typed route params with \`useLocalSearchParams<T>()\`
+- Path aliases: \`@/\` → \`./src/\`
 
-### Стилі
-- NativeWind (Tailwind CSS) для 90% стилів
-- Кольори через theme (\`tailwind.config.js\`)
-- \`cssInterop\` для third-party компонентів
-- Constants для значень потрібних в JS
-
-### Performance
-- \`FlatList\` або \`FlashList\` для списків (НЕ ScrollView+map)
-- \`expo-image\` з кешуванням
-- WebP формат для зображень
-- Tree shaking imports
-`;
-  }
-
-  // React Navigation variant
-  return `# ${appName}
-${descriptionSection}${featuresSection}
-## Стек технологій
-
-- **Framework**: Expo (Managed Workflow)
-- **Navigation**: React Navigation (native-stack + bottom-tabs)
-- **Language**: TypeScript (strict mode)
-- **Styling**: NativeWind v4 (Tailwind CSS)
-- **State Management**: Zustand + MMKV (persist)
-- **API**: Axios + TanStack Query
-- **Forms**: React Hook Form + Zod
-- **Build**: EAS Build + OTA Updates
-
-## Архітектура
-
-### Component-based Navigation (React Navigation)
-- Навігатори в \`src/navigation/\`
-- \`AppNavigator.tsx\` = root (auth conditional)
-- \`MainNavigator.tsx\` = bottom tabs
-- \`AuthNavigator.tsx\` = auth stack
-
-### Container/UI Pattern
-- **Container** (\`*Screen.tsx\`) = логіка (hooks, store, navigation)
-- **UI** (\`*ScreenUI.tsx\`) = чистий UI (props-driven)
-- UI компоненти НЕ залежать від навігації
-
-### Структура проекту
-\`\`\`
-src/
-├── navigation/         # Навігатори
-│   ├── AppNavigator.tsx
-│   ├── AuthNavigator.tsx
-│   ├── MainNavigator.tsx
-│   └── types.ts        # ParamList types
-├── screens/            # Screens (Container + UI)
-│   ├── auth/
-│   │   ├── LoginScreen.tsx      # Container
-│   │   └── LoginScreenUI.tsx    # UI
-│   └── catalog/
-│       ├── CatalogScreen.tsx
-│       └── CatalogScreenUI.tsx
-├── components/         # Shared UI
-│   ├── ui/             # Button, Input, Card
-│   └── shared/         # ProductCard, etc.
-├── store/              # Zustand stores
-├── services/api/       # Axios client + API calls
-├── hooks/              # Custom hooks (TanStack Query)
-├── constants/          # Colors, config
-├── types/              # TypeScript types
-└── utils/              # Helpers
-\`\`\`
-
-## Правила коду
-
-### Компоненти
-- Використовуй \`Pressable\` замість \`TouchableOpacity\`
-- Використовуй \`expo-image\` замість \`Image\`
-- Використовуй \`className\` (NativeWind) для стилів
-- \`React.memo\` для list items
-- Composable pattern для складних компонентів
-
-### State Management
-- **Zustand** для client state (auth, cart, settings)
-- **TanStack Query** для server state (products, orders)
-- Завжди використовуй **селектори**: \`useStore((s) => s.field)\`
-- \`useShallow\` для множинних значень
-- MMKV persist для auth та settings
-
-### API
-- Axios instance з interceptors (auth token, 401 handling)
-- TanStack Query hooks для data fetching
-- Query key conventions: \`['entity', ...params]\`
-
-### Navigation
-- Typed ParamList для всіх navigators
-- \`NativeStackScreenProps\` для screen props
-- Conditional navigators для auth flow
-- Deep linking через \`linking\` config
-
-### TypeScript
-- Strict mode завжди
-- Ніяких \`any\` (максимум \`unknown\` з type guard)
-- Typed navigation props (ParamList)
-- Path aliases: \`@/\`, \`@components/\`, \`@store/\`, etc.
-
-### Стилі
-- NativeWind (Tailwind CSS) для 90% стилів
-- Кольори через theme (\`tailwind.config.js\`)
-- \`cssInterop\` для third-party компонентів
-- Constants для значень потрібних в JS
+### Styling
+- NativeWind (Tailwind CSS) for 95% of styles
+- Colors via Tailwind theme (\`tailwind.config.js\`) + JS constants (\`src/constants/colors.ts\`)
+- \`cssInterop\` to enable className on third-party components
+- Rule: if a value is used in 2+ files → move it to \`constants/\`
 
 ### Performance
-- \`FlatList\` або \`FlashList\` для списків (НЕ ScrollView+map)
-- \`expo-image\` з кешуванням
-- WebP формат для зображень
-- Tree shaking imports
+- \`FlashList\` or \`FlatList\` for lists (NEVER ScrollView + map)
+- \`getItemLayout\` for FlatList when item height is fixed
+- \`expo-image\` with \`cachePolicy="memory-disk"\`
+- WebP format for all images
+- Direct submodule imports to enable tree-shaking (avoid barrel exports)
+- Reanimated worklets for 60+ FPS animations
 `;
 }
