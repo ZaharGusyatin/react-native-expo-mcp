@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.1.0] - 2026-02-19
+
+### Added
+- `pattern-helper.ts` — shared `resolvePattern()` utility and `PatternSections` interface for all pattern tools
+- `topic` parameter on all 10 pattern tools — fetch a single section instead of full content (saves tokens)
+- `compact` parameter on all 10 pattern tools — returns rules-only bullet points without code examples
+
+### Changed
+- All 10 pattern files refactored to dual-dictionary architecture (`sections` + `compactSections`)
+- `setup-new-project` deduplicated: inline code replaced with cross-references to pattern tools (e.g. `get-state-patterns(topic: store-pattern)`)
+- `src/index.ts` — all tool schemas updated with `topic`/`compact` Zod params and available topic lists in descriptions
+- Content deduplication across tools via markdown cross-references (`> See get-*-patterns (topic: ...)`)
+
+---
+
 ## [2.0.2] - 2026-02-18
 
 ### Added

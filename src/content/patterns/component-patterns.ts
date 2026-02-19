@@ -1,7 +1,9 @@
-export const getComponentPatterns = (): string => {
-  return `# Component Patterns
+import { PatternSections, resolvePattern } from './pattern-helper';
 
-## Pressable Instead of TouchableOpacity
+// ─── Full sections (with code examples) ─────────────────────────────
+
+const sections: Record<string, string> = {
+  pressable: `## Pressable Instead of TouchableOpacity
 
 ALWAYS use \`Pressable\` instead of \`TouchableOpacity\`.
 \`Pressable\` is the modern API with better performance and flexibility.
@@ -25,7 +27,19 @@ import { Pressable, Text } from 'react-native';
 </Pressable>
 \`\`\`
 
-## expo-image Instead of Image
+Never use \`onPress\` on \`<Text>\`. Always wrap in \`<Pressable>\`:
+
+\`\`\`tsx
+// BAD
+<Text onPress={handlePress}>Click here</Text>
+
+// GOOD
+<Pressable onPress={handlePress}>
+  <Text className="text-blue-500 underline">Click here</Text>
+</Pressable>
+\`\`\``,
+
+  'expo-image': `## expo-image Instead of Image
 
 ALWAYS use \`expo-image\` instead of the standard \`Image\` from react-native.
 Benefits: built-in caching, blurhash placeholder, transition animations.
@@ -43,23 +57,11 @@ import { Image } from 'expo-image';
 />
 \`\`\`
 
-## NEVER \`<Text onPress={...}>\`
+> For enabling \`className\` on expo-image via \`cssInterop\`, see \`get-styling-patterns\` (topic: css-interop).`,
 
-Never use \`onPress\` on \`<Text>\`. Always wrap in \`<Pressable>\`.
+  'react-memo': `## React.memo for List Items
 
-\`\`\`tsx
-// BAD
-<Text onPress={handlePress}>Click here</Text>
-
-// GOOD
-<Pressable onPress={handlePress}>
-  <Text className="text-blue-500 underline">Click here</Text>
-</Pressable>
-\`\`\`
-
-## React.memo for List Items
-
-Always memoize components rendered in lists (FlatList, FlashList).
+Always memoize components rendered in lists (FlatList, FlashList, LegendList).
 
 \`\`\`tsx
 import React from 'react';
@@ -81,9 +83,9 @@ const Card = React.memo<CardProps>(({ title, subtitle, onPress }) => {
 });
 
 export default Card;
-\`\`\`
+\`\`\``,
 
-## React Compiler (React 19+)
+  'react-compiler': `## React Compiler (React 19+)
 
 If the project uses React 19+ with React Compiler — do NOT use \`useCallback\` and \`useMemo\` manually. The Compiler handles this automatically.
 
@@ -99,25 +101,11 @@ const handleSubmit = useCallback(() => {
 }, [dependency]);
 \`\`\`
 
-React Compiler setup:
-\`\`\`js
-// babel.config.js
-const ReactCompilerConfig = { target: '19' };
-
-module.exports = function (api) {
-  api.cache(true);
-  return {
-    presets: ['babel-preset-expo'],
-    plugins: [
-      ['babel-plugin-react-compiler', ReactCompilerConfig],
-    ],
-  };
-};
-\`\`\`
-
 If the compiler is not set up or React < 19 — use \`useCallback\` for handler functions passed as props.
 
-## Composable Components
+> For React Compiler babel setup, see \`setup-new-project\` step 5.`,
+
+  composable: `## Composable Components
 
 Break complex components into smaller focused components with clear prop interfaces. Each sub-component does one thing.
 
@@ -167,9 +155,9 @@ const ProductCardPrice = ({ amount, currency = 'USD' }: ProductCardPriceProps) =
   <ProductCardTitle>{product.name}</ProductCardTitle>
   <ProductCardPrice amount={product.price} />
 </ProductCard>
-\`\`\`
+\`\`\``,
 
-## Uncontrolled TextInput
+  'uncontrolled-textinput': `## Uncontrolled TextInput
 
 For TextInput in large forms or on low-performance devices, use the uncontrolled pattern — remove the \`value\` prop and work via a ref.
 
@@ -189,6 +177,57 @@ const valueRef = useRef('');
 Use **controlled** when you need real-time validation or input masking.
 Use **uncontrolled** when you just collect data to submit (e.g., registration form).
 
-> Note: The controlled TextInput de-synchronization issue (flickering) exists in legacy architecture only. New Architecture resolves it. Uncontrolled is still useful for performance in complex forms.
-`;
-}
+> Note: The controlled TextInput de-synchronization issue (flickering) exists in legacy architecture only. New Architecture resolves it. Uncontrolled is still useful for performance in complex forms.`,
+};
+
+// ─── Compact sections (rules only, no code) ─────────────────────────
+
+const compactSections: Record<string, string> = {
+  pressable: `## Pressable
+- ALWAYS use \`Pressable\` instead of \`TouchableOpacity\`
+- Use \`className\` with \`active:\` prefix for pressed states (e.g. \`active:opacity-80\`)
+- For custom pressed state UI, use render function variant: \`{({ pressed }) => ...}\`
+- NEVER use \`<Text onPress>\` — always wrap in \`<Pressable>\``,
+
+  'expo-image': `## expo-image
+- ALWAYS use \`expo-image\` instead of RN \`Image\`
+- Set \`cachePolicy="memory-disk"\` for automatic caching
+- Use \`placeholder={{ blurhash }}\` for loading placeholders
+- Use \`contentFit="cover"\` and \`transition={200}\` for smooth loading
+- For \`className\` support, see \`get-styling-patterns\` (topic: css-interop)`,
+
+  'react-memo': `## React.memo
+- ALWAYS wrap list item components in \`React.memo\`
+- Type the memo: \`React.memo<CardProps>(({ title, onPress }) => ...)\`
+- Not needed for: components that always get new props, rarely re-rendered components, or very simple components`,
+
+  'react-compiler': `## React Compiler
+- React 19+ with React Compiler: do NOT use manual \`useCallback\` / \`useMemo\`
+- The compiler auto-memoizes functions and values
+- \`React.memo\` for list items is still useful (component-level optimization)
+- Without React Compiler (React < 19): use \`useCallback\` for handlers passed as props
+- Babel setup: see \`setup-new-project\` step 5`,
+
+  composable: `## Composable Components
+- Break large components into small, focused sub-components
+- Each sub-component: one typed props interface, one responsibility
+- Pattern: \`ProductCard\` (container) + \`ProductCardImage\`, \`ProductCardTitle\`, \`ProductCardPrice\`
+- Compose at usage site: \`<ProductCard><ProductCardImage /><ProductCardTitle /></ProductCard>\``,
+
+  'uncontrolled-textinput': `## Uncontrolled TextInput
+- **Controlled** (\`value\` + \`onChangeText\`): for real-time validation, input masking
+- **Uncontrolled** (\`defaultValue\` + ref): for simple data-collection forms (better perf)
+- Pattern: \`const ref = useRef('')\` + \`onChangeText={(t) => { ref.current = t }}\`
+- New Architecture fixes the flickering issue, but uncontrolled is still faster for complex forms`,
+};
+
+// ─── Export ──────────────────────────────────────────────────────────
+
+const pattern: PatternSections = {
+  title: 'Component Patterns',
+  sections,
+  compactSections,
+};
+
+export const getComponentPatterns = (topic?: string, compact?: boolean): string =>
+  resolvePattern(pattern, topic, compact);

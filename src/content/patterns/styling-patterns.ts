@@ -1,7 +1,9 @@
-export const getStylingPatterns = (): string => {
-  return `# Styling Patterns (NativeWind / Tailwind CSS)
+import { PatternSections, resolvePattern } from './pattern-helper';
 
-## NativeWind — Recommended Approach
+// ─── Full sections (with code examples) ─────────────────────────────
+
+const sections: Record<string, string> = {
+  nativewind: `## NativeWind — Recommended Approach
 
 NativeWind v4 (Tailwind CSS for React Native) — use for 95% of styles.
 
@@ -16,18 +18,18 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'white', paddingHorizontal: 24, paddingTop: 80 },
   title: { fontSize: 30, fontWeight: 'bold', color: '#111827' },
 });
-\`\`\`
+\`\`\``,
 
-## Arbitrary Values
+  'arbitrary-values': `## Arbitrary Values
 
 For specific values not in Tailwind — use arbitrary values:
 
 \`\`\`tsx
 <View className="h-[50px] w-[250px] rounded-[12px] top-[60px]" />
 <Text className="text-[#FF5733] text-[17px]">Custom</Text>
-\`\`\`
+\`\`\``,
 
-## cssInterop for Third-Party Libraries
+  'css-interop': `## cssInterop for Third-Party Libraries
 
 When a third-party library does not support \`className\` — use \`cssInterop\`:
 
@@ -43,9 +45,9 @@ cssInterop(Image, { className: 'style' });
 // Now className works
 <Animated.View className="bg-white rounded-lg p-4" />
 <Image className="w-20 h-20 rounded-full" source={{ uri }} />
-\`\`\`
+\`\`\``,
 
-## Tailwind Config — Colors and Theme
+  'tailwind-config': `## Tailwind Config — Colors and Theme
 
 \`\`\`js
 // tailwind.config.js
@@ -77,9 +79,9 @@ Now use in code:
 <View className="bg-primary" />
 <Text className="text-error" />
 <View className="bg-background" />
-\`\`\`
+\`\`\``,
 
-## JS Constants for Non-Tailwind Values
+  'js-constants': `## JS Constants for Non-Tailwind Values
 
 Tailwind covers styles, but when values are needed in JavaScript (e.g., animations, calculations) — use constants:
 
@@ -120,9 +122,9 @@ export const SPACING = {
 
 ## Rule: 2+ Files → constants/
 
-If a value (color, size, spacing) is used in 2+ files — it belongs in \`constants/\`.
+If a value (color, size, spacing) is used in 2+ files — it belongs in \`constants/\`.`,
 
-## Conditional Styles
+  conditional: `## Conditional Styles
 
 \`\`\`tsx
 // Template literals
@@ -132,15 +134,65 @@ If a value (color, size, spacing) is used in 2+ files — it belongs in \`consta
 <Pressable
   className={\`py-3 px-6 rounded-xl \${variant === 'primary' ? 'bg-primary' : ''} \${variant === 'outline' ? 'border-2 border-primary' : ''} \${disabled ? 'opacity-50' : ''}\`}
 />
-\`\`\`
+\`\`\``,
 
-## NativeWind Setup Checklist
+  checklist: `## NativeWind Setup Checklist
 
 1. \`tailwind.config.js\` — content paths, presets, theme colors
 2. \`global.css\` — \`@tailwind base; @tailwind components; @tailwind utilities;\`
 3. \`metro.config.js\` — \`withNativeWind(config, { input: "./global.css" })\`
 4. \`nativewind-env.d.ts\` — \`/// <reference types="nativewind/types" />\`
 5. \`app/_layout.tsx\` — \`import '../global.css';\`
-6. \`babel.config.js\` — \`'nativewind/babel'\` in plugins
-`;
-}
+6. \`babel.config.js\` — \`'nativewind/babel'\` in plugins`,
+};
+
+// ─── Compact sections (rules only, no code) ─────────────────────────
+
+const compactSections: Record<string, string> = {
+  nativewind: `## NativeWind
+- Use NativeWind v4 (Tailwind CSS) for 95% of styles
+- \`className\` prop on RN components — no \`StyleSheet.create\`
+- Cleaner, less boilerplate, consistent with web Tailwind`,
+
+  'arbitrary-values': `## Arbitrary Values
+- For non-standard values: \`h-[50px]\`, \`text-[#FF5733]\`, \`rounded-[12px]\`
+- Works for any CSS property`,
+
+  'css-interop': `## cssInterop
+- For third-party libs without \`className\` support
+- \`cssInterop(Component, { className: 'style' })\`
+- Common: \`Animated.View\`, \`expo-image Image\``,
+
+  'tailwind-config': `## Tailwind Config
+- \`content\`: \`['./app/**/*.{ts,tsx}', './src/**/*.{ts,tsx}']\`
+- \`presets: [require('nativewind/preset')]\`
+- Extend \`theme.colors\`: primary, secondary, background, error, success`,
+
+  'js-constants': `## JS Constants
+- Colors/layout values needed in JS (animations, calculations) go in \`src/constants/\`
+- Use \`as const\` for literal types
+- Rule: if a value is used in 2+ files → move to \`constants/\``,
+
+  conditional: `## Conditional Styles
+- Template literals: \`\\\`bg-\${isActive ? 'primary' : 'gray-200'}\\\`\`
+- Multi-condition: chain ternaries in template string`,
+
+  checklist: `## Setup Checklist
+1. \`tailwind.config.js\` (content, presets, theme)
+2. \`global.css\` (@tailwind directives)
+3. \`metro.config.js\` (withNativeWind)
+4. \`nativewind-env.d.ts\` (type reference)
+5. \`app/_layout.tsx\` (import global.css)
+6. \`babel.config.js\` (nativewind/babel plugin)`,
+};
+
+// ─── Export ──────────────────────────────────────────────────────────
+
+const pattern: PatternSections = {
+  title: 'Styling Patterns (NativeWind / Tailwind CSS)',
+  sections,
+  compactSections,
+};
+
+export const getStylingPatterns = (topic?: string, compact?: boolean): string =>
+  resolvePattern(pattern, topic, compact);

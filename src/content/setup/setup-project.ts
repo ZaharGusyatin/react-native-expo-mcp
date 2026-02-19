@@ -23,25 +23,9 @@ rm -rf app/(tabs) app/modal.tsx components/ constants/ hooks/
 
 ## Step 2: Configure TypeScript
 
-\`\`\`json
-// tsconfig.json
-{
-  "extends": "expo/tsconfig.base",
-  "compilerOptions": {
-    "strict": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"],
-      "@components/*": ["./src/components/*"],
-      "@screens/*": ["./src/screens/*"],
-      "@hooks/*": ["./src/hooks/*"],
-      "@store/*": ["./src/store/*"],
-      "@services/*": ["./src/services/*"],
-      "@constants/*": ["./src/constants/*"]
-    }
-  }
-}
-\`\`\`
+Enable strict mode and path aliases in \`tsconfig.json\`.
+
+> See \`get-typescript-patterns\` (topic: strict-config) for strict mode flags and \`get-project-structure\` (topic: import-aliases) for the full tsconfig.json with path aliases.
 
 ## Step 3: Install NativeWind v4
 
@@ -49,46 +33,9 @@ rm -rf app/(tabs) app/modal.tsx components/ constants/ hooks/
 npx expo install nativewind tailwindcss react-native-reanimated react-native-safe-area-context
 \`\`\`
 
-Create \`global.css\`:
-\`\`\`css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-\`\`\`
+Create the following config files: \`global.css\`, \`tailwind.config.js\`, \`metro.config.js\`, \`nativewind-env.d.ts\`.
 
-Create \`tailwind.config.js\`:
-\`\`\`js
-module.exports = {
-  content: ['./app/**/*.{js,jsx,ts,tsx}', './src/**/*.{js,jsx,ts,tsx}'],
-  presets: [require('nativewind/preset')],
-  theme: {
-    extend: {
-      colors: {
-        primary: { DEFAULT: '#007AFF', light: '#4DA2FF', dark: '#0056B3' },
-        secondary: '#5856D6',
-        background: '#F2F2F7',
-        error: '#FF3B30',
-        success: '#34C759',
-      },
-    },
-  },
-  plugins: [],
-};
-\`\`\`
-
-Update \`metro.config.js\`:
-\`\`\`js
-const { getDefaultConfig } = require('expo/metro-config');
-const { withNativeWind } = require('nativewind/metro');
-
-const config = getDefaultConfig(__dirname);
-module.exports = withNativeWind(config, { input: './global.css' });
-\`\`\`
-
-Create \`nativewind-env.d.ts\`:
-\`\`\`ts
-/// <reference types="nativewind/types" />
-\`\`\`
+> See \`get-styling-patterns\` (topic: checklist) for the full NativeWind setup checklist and \`get-styling-patterns\` (topic: tailwind-config) for the Tailwind config example.
 
 ## Step 4: Create Project Structure
 
@@ -147,54 +94,9 @@ npx expo install zustand react-native-mmkv
 
 > **Note**: react-native-mmkv requires native build — it does NOT work in Expo Go. Use \`expo prebuild\` or EAS Build.
 
-Create \`src/services/storage/mmkv.ts\`:
-\`\`\`ts
-import { MMKV } from 'react-native-mmkv';
-import { StateStorage } from 'zustand/middleware';
+Create \`src/services/storage/mmkv.ts\` (MMKV adapter) and \`src/store/auth.ts\` (auth store with persistence).
 
-let _storage: MMKV | null = null;
-
-function getStorage(): MMKV {
-  if (!_storage) _storage = new MMKV();
-  return _storage;
-}
-
-export const zustandStorage: StateStorage = {
-  getItem: (name) => getStorage().getString(name) ?? null,
-  setItem: (name, value) => getStorage().set(name, value),
-  removeItem: (name) => getStorage().delete(name),
-};
-\`\`\`
-
-Create \`src/store/auth.ts\`:
-\`\`\`ts
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { zustandStorage } from '@services/storage/mmkv';
-
-type User = { id: string; name: string; email: string };
-
-type AuthState = {
-  token: string | null;
-  user: User | null;
-  isAuthenticated: boolean;
-  login: (token: string, user: User) => void;
-  logout: () => void;
-};
-
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      token: null,
-      user: null,
-      isAuthenticated: false,
-      login: (token, user) => set({ token, user, isAuthenticated: true }),
-      logout: () => set({ token: null, user: null, isAuthenticated: false }),
-    }),
-    { name: 'auth-storage', storage: createJSONStorage(() => zustandStorage) }
-  )
-);
-\`\`\`
+> See \`get-state-patterns\` (topic: mmkv-adapter) for the MMKV adapter code and \`get-state-patterns\` (topic: store-pattern) for the full auth store example.
 
 ## Step 7: Setup API Client (Axios + TanStack Query)
 
@@ -202,54 +104,9 @@ export const useAuthStore = create<AuthState>()(
 npx expo install axios @tanstack/react-query
 \`\`\`
 
-Create \`src/services/api/client.ts\`:
-\`\`\`ts
-import axios from 'axios';
-import { useAuthStore } from '@store/auth';
+Create \`src/services/api/client.ts\` (Axios instance with auth interceptors) and add QueryClient to \`app/_layout.tsx\`.
 
-const apiClient = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL,
-  timeout: 10000,
-  headers: { 'Content-Type': 'application/json' },
-});
-
-apiClient.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().token;
-  if (token) config.headers.Authorization = \`Bearer \${token}\`;
-  return config;
-});
-
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) useAuthStore.getState().logout();
-    return Promise.reject(error);
-  }
-);
-
-export default apiClient;
-\`\`\`
-
-Add QueryClient to root layout \`app/_layout.tsx\`:
-\`\`\`tsx
-import { Stack } from 'expo-router';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import '../global.css';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: { staleTime: 1000 * 60 * 5, retry: 1, refetchOnWindowFocus: false },
-  },
-});
-
-export default function RootLayout() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Stack screenOptions={{ headerShown: false }} />
-    </QueryClientProvider>
-  );
-}
-\`\`\`
+> See \`get-api-patterns\` (topic: axios-client) for the full Axios client with interceptors and \`get-api-patterns\` (topic: query-client-config) for the QueryClient configuration.
 
 ## Step 8: Configure Environment Variables
 

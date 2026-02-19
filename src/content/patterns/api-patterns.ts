@@ -1,7 +1,9 @@
-export const getApiPatterns = (): string => {
-  return `# API Patterns (Axios + TanStack Query)
+import { PatternSections, resolvePattern } from './pattern-helper';
 
-## Axios Client with Interceptors
+// ─── Full sections (with code examples) ─────────────────────────────
+
+const sections: Record<string, string> = {
+  'axios-client': `## Axios Client with Interceptors
 
 \`\`\`tsx
 // src/services/api/client.ts
@@ -35,9 +37,9 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
-\`\`\`
+\`\`\``,
 
-## API Service Pattern
+  services: `## API Service Pattern
 
 Group API calls by domain in separate files:
 
@@ -92,15 +94,13 @@ export const productService = {
     return data;
   },
 };
-\`\`\`
+\`\`\``,
 
-## TanStack Query — Custom Hooks
+  'query-hooks': `## TanStack Query — Custom Query Hooks
 
 > **Version note**: Examples below use **TanStack Query v5** (current). See diff at the bottom if your project uses v4.
 
 Always create custom hooks for TanStack Query. Do NOT use useQuery/useMutation directly in components.
-
-### useQuery for Reading
 
 \`\`\`tsx
 // src/hooks/useProducts.ts
@@ -121,9 +121,9 @@ export const useProduct = (id: string) => {
     enabled: !!id, // Don't fetch if id is missing
   });
 };
-\`\`\`
+\`\`\``,
 
-### useMutation for Writing
+  'mutation-hooks': `## TanStack Query — Custom Mutation Hooks
 
 \`\`\`tsx
 // src/hooks/useAuth.ts
@@ -150,9 +150,9 @@ loginMutation.mutate(
     onError: () => alert('Login failed'),
   }
 );
-\`\`\`
+\`\`\``,
 
-### Usage in a Route File
+  usage: `## Usage in a Route File
 
 \`\`\`tsx
 // app/(tabs)/catalog.tsx
@@ -172,18 +172,18 @@ export default function CatalogRoute() {
     />
   );
 }
-\`\`\`
+\`\`\``,
 
-### v4 vs v5 Key Differences
+  'v4-vs-v5': `## v4 vs v5 Key Differences
 
 | Feature | v4 | v5 |
 |---|---|---|
 | Loading state | \`isLoading\` | \`isPending\` (for no-data state) |
 | Cache eviction option | \`cacheTime\` | \`gcTime\` |
 | Mutation callbacks | \`onSuccess\`/\`onError\` in \`useMutation({})\` | In \`mutate(data, { onSuccess, onError })\` |
-| Query options object | separate \`useQuery(key, fn, options)\` | merged \`useQuery({ queryKey, queryFn, ...options })\` |
+| Query options object | separate \`useQuery(key, fn, options)\` | merged \`useQuery({ queryKey, queryFn, ...options })\` |`,
 
-## Query Key Conventions
+  'query-keys': `## Query Key Conventions
 
 Use a consistent key structure:
 
@@ -200,9 +200,9 @@ queryKey: ['product', productId, 'reviews']
 
 // User-specific
 queryKey: ['user', userId, 'orders']
-\`\`\`
+\`\`\``,
 
-## QueryClient Config
+  'query-client-config': `## QueryClient Config
 
 \`\`\`tsx
 // app/_layout.tsx
@@ -226,15 +226,74 @@ export default function RootLayout() {
     </QueryClientProvider>
   );
 }
-\`\`\`
+\`\`\``,
 
-## Rules
+  rules: `## Rules
 
 1. **Client state → Zustand**: auth, cart, preferences
 2. **Server state → TanStack Query**: products, orders, profiles
 3. **Custom hooks**: always create \`useProducts\`, \`useLogin\` — do not write \`useQuery\` directly in components
 4. **Query keys**: consistent structure \`['entity', ...params]\`
 5. **Error handling**: interceptor for 401, onError for specific errors
-6. **Token injection**: via interceptor, do not pass token manually
-`;
-}
+6. **Token injection**: via interceptor, do not pass token manually`,
+};
+
+// ─── Compact sections (rules only, no code) ─────────────────────────
+
+const compactSections: Record<string, string> = {
+  'axios-client': `## Axios Client
+- Create \`src/services/api/client.ts\` with \`axios.create({ baseURL, timeout, headers })\`
+- Request interceptor: auto-inject auth token from \`useAuthStore.getState().token\`
+- Response interceptor: auto-logout on 401`,
+
+  services: `## API Services
+- Group by domain: \`src/services/api/auth.ts\`, \`products.ts\`, etc.
+- Each service = object with async methods returning typed data
+- Import \`apiClient\` from \`./client\``,
+
+  'query-hooks': `## Query Hooks
+- ALWAYS create custom hooks (\`useProducts\`, \`useProduct\`) — never use \`useQuery\` in components directly
+- Place in \`src/hooks/\`
+- Use \`enabled\` option to conditionally fetch (e.g. \`enabled: !!id\`)`,
+
+  'mutation-hooks': `## Mutation Hooks
+- Create \`useLogin\`, \`useCreateProduct\`, etc. wrapping \`useMutation\`
+- v5: \`onSuccess\`/\`onError\` callbacks go in \`mutate(data, { onSuccess })\`, not in hook options`,
+
+  usage: `## Usage in Route
+- Destructure: \`{ data, isPending, error, refetch }\` (v5: \`isPending\` not \`isLoading\`)
+- Pass data to Screen UI via props`,
+
+  'v4-vs-v5': `## v4 vs v5
+- \`isLoading\` → \`isPending\`, \`cacheTime\` → \`gcTime\`
+- Mutation callbacks: in \`useMutation({})\` (v4) → in \`mutate(data, {})\` (v5)
+- Query: separate args (v4) → single options object (v5)`,
+
+  'query-keys': `## Query Keys
+- Entity list: \`['products']\`, with filters: \`['products', { page, category }]\`
+- Single entity: \`['product', id]\`
+- Nested: \`['product', id, 'reviews']\``,
+
+  'query-client-config': `## QueryClient Config
+- \`staleTime\`: how long data is fresh (e.g. 5 min)
+- \`gcTime\`: when inactive cache is evicted (e.g. 10 min)
+- \`retry: 2\`, \`refetchOnWindowFocus: false\` for mobile`,
+
+  rules: `## Rules
+- Client state → Zustand, Server state → TanStack Query
+- Always custom hooks — never \`useQuery\` in components
+- Query keys: \`['entity', ...params]\`
+- Token injection via interceptor, not manually
+- 401 handling via response interceptor`,
+};
+
+// ─── Export ──────────────────────────────────────────────────────────
+
+const pattern: PatternSections = {
+  title: 'API Patterns (Axios + TanStack Query)',
+  sections,
+  compactSections,
+};
+
+export const getApiPatterns = (topic?: string, compact?: boolean): string =>
+  resolvePattern(pattern, topic, compact);

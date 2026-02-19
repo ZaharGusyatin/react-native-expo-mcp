@@ -1,7 +1,9 @@
-export const getPerformancePatterns = (): string => {
-  return `# Performance Patterns
+import { PatternSections, resolvePattern } from './pattern-helper';
 
-## List Components
+// ─── Full sections (with code examples) ─────────────────────────────
+
+const sections: Record<string, string> = {
+  lists: `## List Components
 
 For any list — use a performant list component. NEVER \`ScrollView\` + \`.map()\`.
 
@@ -65,7 +67,9 @@ Use when LegendList/FlashList are not an option. Key optimization: always provid
 />
 \`\`\`
 
-## Image Optimization
+> Always \`React.memo\` list item components — see \`get-component-patterns\` (topic: react-memo).`,
+
+  images: `## Image Optimization
 
 ### WebP Format
 
@@ -74,22 +78,9 @@ ALWAYS use WebP instead of PNG/JPG:
 - Transparency support
 - Animation support
 
-### expo-image with Caching
+> Use \`expo-image\` for all images with \`cachePolicy="memory-disk"\` — see \`get-component-patterns\` (topic: expo-image).`,
 
-\`\`\`tsx
-import { Image } from 'expo-image';
-
-<Image
-  source={{ uri: imageUrl }}
-  placeholder={{ blurhash: 'LKO2:N%2Tw=w]~RBVZRi};RPxuwH' }}
-  contentFit="cover"
-  transition={200}
-  cachePolicy="memory-disk"
-  className="w-full h-48 rounded-lg"
-/>
-\`\`\`
-
-## Tree-Shaking Imports
+  'tree-shaking': `## Tree-Shaking Imports
 
 \`\`\`tsx
 // GOOD — tree-shakeable (direct submodule imports)
@@ -98,9 +89,9 @@ import addDays from 'date-fns/addDays';
 
 // BAD — pulls in the entire package
 import { format, addDays } from 'date-fns';
-\`\`\`
+\`\`\``,
 
-## Avoid Barrel Exports
+  'barrel-exports': `## Avoid Barrel Exports
 
 Barrel exports (\`index.ts\` with re-exports) prevent tree-shaking and increase bundle size.
 
@@ -116,9 +107,9 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 \`\`\`
 
-Use \`eslint-plugin-no-barrel-imports\` to enforce this rule.
+Use \`eslint-plugin-no-barrel-imports\` to enforce this rule.`,
 
-## Bundle Size Analysis
+  bundle: `## Bundle Size Analysis
 
 \`\`\`bash
 # Analyze bundle with Expo Atlas (recommended)
@@ -128,15 +119,9 @@ npx expo-atlas
 # Source map explorer
 npx expo export --dump-sourcemap
 npx source-map-explorer output.js
-\`\`\`
+\`\`\``,
 
-## React Compiler — Auto Memoization
-
-React Compiler (React 19+) automatically memoizes components and functions. If configured — no need for manual \`useCallback\` and \`useMemo\`.
-
-\`React.memo\` is still useful for list items — it works at the component level.
-
-## Concurrent React Features
+  concurrent: `## Concurrent React Features
 
 ### useDeferredValue
 
@@ -191,9 +176,9 @@ function FilterScreen() {
 }
 \`\`\`
 
-**How to choose**: \`useDeferredValue\` — for a single value. \`useTransition\` — for entire state updates.
+**How to choose**: \`useDeferredValue\` — for a single value. \`useTransition\` — for entire state updates.`,
 
-## InteractionManager
+  'interaction-manager': `## InteractionManager
 
 Defer heavy operations until after animations complete:
 
@@ -208,9 +193,9 @@ useEffect(() => {
 
   return () => task.cancel();
 }, []);
-\`\`\`
+\`\`\``,
 
-## Animations — Reanimated Worklets
+  reanimated: `## Animations — Reanimated Worklets
 
 For 60+ FPS animations — use react-native-reanimated worklets that run on the UI thread:
 
@@ -236,9 +221,9 @@ function AnimatedBox() {
 
 Worklets run on the UI thread — the JS thread is not blocked. Critical for 60+ FPS animations.
 
-**16 ms budget per frame** (60 FPS) / **8 ms for 120 FPS**. Functions that run longer than this budget will drop frames.
+**16 ms budget per frame** (60 FPS) / **8 ms for 120 FPS**. Functions that run longer than this budget will drop frames.`,
 
-## Performance Checklist
+  checklist: `## Performance Checklist
 
 - [ ] Lists: LegendList / FlashList (NOT ScrollView + map)
 - [ ] estimatedItemSize for LegendList/FlashList; getItemLayout for FlatList
@@ -250,6 +235,76 @@ Worklets run on the UI thread — the JS thread is not blocked. Critical for 60+
 - [ ] React Compiler (if React 19+)
 - [ ] Reanimated for animations (UI thread worklets)
 - [ ] InteractionManager for heavy operations after transition
-- [ ] useDeferredValue / useTransition for non-critical updates
-`;
-}
+- [ ] useDeferredValue / useTransition for non-critical updates`,
+};
+
+// ─── Compact sections (rules only, no code) ─────────────────────────
+
+const compactSections: Record<string, string> = {
+  lists: `## Lists
+- NEVER use \`ScrollView\` + \`.map()\` for lists
+- **LegendList** (recommended): JS-only, New Architecture, \`recycleItems\` prop
+- **FlashList** (alternative): Shopify, drop-in FlatList replacement, item recycling
+- **FlatList** (fallback): always provide \`getItemLayout\` for fixed-height items
+- All require \`estimatedItemSize\` or \`getItemLayout\`
+- Props to tune: \`windowSize\`, \`maxToRenderPerBatch\`, \`removeClippedSubviews\`, \`initialNumToRender\`
+- Always \`React.memo\` list items — see \`get-component-patterns\` (topic: react-memo)`,
+
+  images: `## Images
+- ALWAYS use WebP format (2-3x smaller than PNG/JPG)
+- Use \`expo-image\` with \`cachePolicy="memory-disk"\`
+- See \`get-component-patterns\` (topic: expo-image) for full expo-image usage`,
+
+  'tree-shaking': `## Tree-Shaking
+- Use direct submodule imports: \`import format from 'date-fns/format'\`
+- Never: \`import { format } from 'date-fns'\` (pulls entire package)`,
+
+  'barrel-exports': `## Barrel Exports
+- Avoid \`index.ts\` re-export barrels — they prevent tree-shaking
+- Use direct file imports: \`import { Button } from '@/components/ui/Button'\`
+- Enforce with \`eslint-plugin-no-barrel-imports\``,
+
+  bundle: `## Bundle Analysis
+- \`EXPO_UNSTABLE_ATLAS=true npx expo start --no-dev\` + \`npx expo-atlas\` (recommended)
+- \`npx expo export --dump-sourcemap\` + \`npx source-map-explorer output.js\``,
+
+  concurrent: `## Concurrent React
+- \`useDeferredValue\`: defer rendering of a single value (search input → results)
+- \`useTransition\`: mark entire state updates as low priority (\`startTransition\`)
+- Wrap heavy components in \`React.memo\` when passing deferred values
+- Choose: \`useDeferredValue\` for one value, \`useTransition\` for state updates`,
+
+  'interaction-manager': `## InteractionManager
+- \`InteractionManager.runAfterInteractions(() => heavyWork())\` — defer after animations
+- Always return \`() => task.cancel()\` in useEffect cleanup`,
+
+  reanimated: `## Reanimated
+- Use \`react-native-reanimated\` worklets for 60+ FPS animations (runs on UI thread)
+- Core: \`useSharedValue\`, \`useAnimatedStyle\`, \`withSpring\` / \`withTiming\`
+- 16ms budget per frame (60 FPS) / 8ms for 120 FPS
+- JS thread stays free — animations never blocked by business logic`,
+
+  checklist: `## Checklist
+- [ ] LegendList / FlashList for lists
+- [ ] estimatedItemSize / getItemLayout
+- [ ] React.memo for list items
+- [ ] expo-image + cachePolicy
+- [ ] WebP images
+- [ ] Tree-shaking imports
+- [ ] No barrel exports
+- [ ] React Compiler (React 19+)
+- [ ] Reanimated for animations
+- [ ] InteractionManager for post-animation work
+- [ ] useDeferredValue / useTransition`,
+};
+
+// ─── Export ──────────────────────────────────────────────────────────
+
+const pattern: PatternSections = {
+  title: 'Performance Patterns',
+  sections,
+  compactSections,
+};
+
+export const getPerformancePatterns = (topic?: string, compact?: boolean): string =>
+  resolvePattern(pattern, topic, compact);

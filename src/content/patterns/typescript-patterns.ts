@@ -1,30 +1,19 @@
-export const getTypescriptPatterns = (): string => {
-  return `# TypeScript Patterns
+import { PatternSections, resolvePattern } from './pattern-helper';
 
-## Strict Mode Configuration
+// ─── Full sections (with code examples) ─────────────────────────────
 
+const sections: Record<string, string> = {
+  'strict-config': `## Strict Mode Configuration
+
+Enable strict mode in tsconfig.json:
 \`\`\`json
-// tsconfig.json
-{
-  "extends": "expo/tsconfig.base",
-  "compilerOptions": {
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"],
-      "@components/*": ["./src/components/*"],
-      "@screens/*": ["./src/screens/*"],
-      "@hooks/*": ["./src/hooks/*"],
-      "@store/*": ["./src/store/*"],
-      "@services/*": ["./src/services/*"],
-      "@constants/*": ["./src/constants/*"]
-    }
-  }
-}
+"strict": true,
+"noUncheckedIndexedAccess": true
 \`\`\`
 
-## Route Param Typing
+> For full tsconfig.json with path aliases, see \`get-project-structure\` (topic: import-aliases).`,
+
+  'route-params': `## Route Param Typing
 
 Use generics with \`useLocalSearchParams\` for type-safe URL params:
 
@@ -44,9 +33,9 @@ export default function ProductRoute() {
   const { data } = useProduct(id);
   return <ProductScreenUI product={data} category={category} />;
 }
-\`\`\`
+\`\`\``,
 
-## API Response Types
+  'api-types': `## API Response Types
 
 \`\`\`tsx
 // src/types/api.ts
@@ -66,9 +55,9 @@ type ApiResponse<T> = {
 // Usage
 type ProductListResponse = PaginatedResponse<Product>;
 type LoginApiResponse = ApiResponse<{ token: string; user: User }>;
-\`\`\`
+\`\`\``,
 
-## Model Types
+  'model-types': `## Model Types
 
 \`\`\`tsx
 // src/types/auth.ts
@@ -100,9 +89,9 @@ export type Product = {
   category: string;
   inStock: boolean;
 };
-\`\`\`
+\`\`\``,
 
-## Props Interface Naming
+  'props-naming': `## Props Interface Naming
 
 Always name props interfaces \`ComponentNameProps\`:
 
@@ -124,9 +113,9 @@ type ButtonProps = PressableProps & {
   variant?: 'primary' | 'outline' | 'ghost';
   isLoading?: boolean;
 };
-\`\`\`
+\`\`\``,
 
-## Store Types
+  'store-types': `## Store Types
 
 Combine state and actions in a single type:
 
@@ -145,9 +134,9 @@ type AuthState = {
 };
 
 export const useAuthStore = create<AuthState>()(...);
-\`\`\`
+\`\`\``,
 
-## Generics for Reusable API Hooks
+  generics: `## Generics for Reusable API Hooks
 
 \`\`\`tsx
 // Generic base hook
@@ -167,9 +156,9 @@ export function useProducts(page = 1) {
     { staleTime: 60_000 }
   );
 }
-\`\`\`
+\`\`\``,
 
-## \`as const\` for Configuration Objects
+  'as-const': `## \`as const\` for Configuration Objects
 
 \`\`\`tsx
 // src/constants/colors.ts
@@ -189,9 +178,9 @@ export const AUTH_EVENTS = {
 
 type AuthEvent = typeof AUTH_EVENTS[keyof typeof AUTH_EVENTS];
 // 'auth/login' | 'auth/logout' | 'auth/token-refresh'
-\`\`\`
+\`\`\``,
 
-## Discriminated Unions for Screen States
+  'discriminated-unions': `## Discriminated Unions for Screen States
 
 \`\`\`tsx
 type ScreenState<T> =
@@ -207,9 +196,9 @@ function ProductScreenUI({ state }: { state: ScreenState<Product[]> }) {
   // TypeScript narrows: state.data is Product[]
   return <ProductList data={state.data} />;
 }
-\`\`\`
+\`\`\``,
 
-## Type Guards
+  'type-guards': `## Type Guards
 
 \`\`\`tsx
 import { AxiosError } from 'axios';
@@ -224,6 +213,63 @@ onError: (error) => {
     setValidationErrors(error.response.data.errors);
   }
 }
-\`\`\`
-`;
-}
+\`\`\``,
+};
+
+// ─── Compact sections (rules only, no code) ─────────────────────────
+
+const compactSections: Record<string, string> = {
+  'strict-config': `## Strict Mode
+- Enable \`"strict": true\` and \`"noUncheckedIndexedAccess": true\`
+- Full tsconfig with path aliases: see \`get-project-structure\` (topic: import-aliases)`,
+
+  'route-params': `## Route Params
+- \`useLocalSearchParams<{ id: string }>()\` for type-safe params
+- Define a type per dynamic route`,
+
+  'api-types': `## API Types
+- \`PaginatedResponse<T>\`: items, total, page, limit, hasMore
+- \`ApiResponse<T>\`: data, message
+- Compose: \`PaginatedResponse<Product>\``,
+
+  'model-types': `## Model Types
+- One file per domain: \`src/types/auth.ts\`, \`product.ts\`
+- Export \`type User\`, \`type Product\`, etc.
+- Separate request/response types: \`LoginRequest\`, \`AuthResponse\``,
+
+  'props-naming': `## Props Naming
+- Always \`ComponentNameProps\`: \`ButtonProps\`, \`LoginScreenUIProps\`
+- Extend native props: \`PressableProps & { title: string }\``,
+
+  'store-types': `## Store Types
+- Single type with state fields + action functions
+- \`create<AuthState>()()\` — type param on create`,
+
+  generics: `## Generics
+- Create generic \`useApiQuery<T>\` base hook
+- Build domain hooks on top: \`useProducts\`, \`useProduct\`
+- Pass \`UseQueryOptions\` for customization`,
+
+  'as-const': `## as const
+- Use \`as const\` on config objects for literal types
+- Enum-like: \`typeof OBJ[keyof typeof OBJ]\` for union type`,
+
+  'discriminated-unions': `## Discriminated Unions
+- \`ScreenState<T>\` with \`status\` field: loading | error | empty | success
+- TypeScript narrows type after checking \`status\``,
+
+  'type-guards': `## Type Guards
+- \`function isX(val: unknown): val is X\` pattern
+- Common: \`isAxiosError\` for typed error handling`,
+};
+
+// ─── Export ──────────────────────────────────────────────────────────
+
+const pattern: PatternSections = {
+  title: 'TypeScript Patterns',
+  sections,
+  compactSections,
+};
+
+export const getTypescriptPatterns = (topic?: string, compact?: boolean): string =>
+  resolvePattern(pattern, topic, compact);

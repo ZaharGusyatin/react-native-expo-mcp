@@ -30,10 +30,21 @@ const server = new McpServer({
 
 server.tool(
   "get-component-patterns",
-  "Get React Native component patterns. Call this when creating any component: button, card, list item, image, form input. Covers Pressable, expo-image, React.memo, React Compiler, composable pattern, and uncontrolled TextInput.",
-  {},
-  async () => ({
-    content: [{ type: "text", text: getComponentPatterns() }],
+  "Get React Native component patterns. Call this when creating any component: button, card, list item, image, form input. Covers Pressable, expo-image, React.memo, React Compiler, composable pattern, and uncontrolled TextInput. Use `topic` to get a specific section only.",
+  {
+    topic: z
+      .string()
+      .optional()
+      .describe(
+        "Get a specific section only. Available: pressable, expo-image, react-memo, react-compiler, composable, uncontrolled-textinput. Omit for full content."
+      ),
+    compact: z
+      .boolean()
+      .optional()
+      .describe("If true, returns rules only without code examples. Much shorter."),
+  },
+  async ({ topic, compact }) => ({
+    content: [{ type: "text", text: getComponentPatterns(topic, compact) }],
   })
 );
 
@@ -42,10 +53,21 @@ server.tool(
 
 server.tool(
   "get-screen-architecture",
-  "Get screen architecture patterns (Logic/UI separation). Call this when creating a new screen or route. Covers the Route file + ScreenUI file split, naming conventions, and why it matters for testability and SOLID principles.",
-  {},
-  async () => ({
-    content: [{ type: "text", text: getScreenArchitecture() }],
+  "Get screen architecture patterns (Logic/UI separation). Call this when creating a new screen or route. Covers the Route file + ScreenUI file split, naming conventions, and why it matters for testability and SOLID principles. Use `topic` to get a specific section only.",
+  {
+    topic: z
+      .string()
+      .optional()
+      .describe(
+        "Get a specific section only. Available: core-rule, route-file, screen-ui, rules, benefits. Omit for full content."
+      ),
+    compact: z
+      .boolean()
+      .optional()
+      .describe("If true, returns rules only without code examples. Much shorter."),
+  },
+  async ({ topic, compact }) => ({
+    content: [{ type: "text", text: getScreenArchitecture(topic, compact) }],
   })
 );
 
@@ -54,10 +76,21 @@ server.tool(
 
 server.tool(
   "get-navigation-patterns",
-  "Get Expo Router navigation patterns. Call this when working with routes, navigation, deep links, or auth guards. Covers file structure, layouts, AuthGuard, typed params, navigation API, deep linking, and layout groups.",
-  {},
-  async () => ({
-    content: [{ type: "text", text: getNavigationPatterns() }],
+  "Get Expo Router navigation patterns. Call this when working with routes, navigation, deep links, or auth guards. Covers file structure, layouts, AuthGuard, typed params, navigation API, deep linking, and layout groups. Use `topic` to get a specific section only.",
+  {
+    topic: z
+      .string()
+      .optional()
+      .describe(
+        "Get a specific section only. Available: file-routing, layouts, auth-guard, typed-params, navigation-api, deep-linking, groups. Omit for full content."
+      ),
+    compact: z
+      .boolean()
+      .optional()
+      .describe("If true, returns rules only without code examples. Much shorter."),
+  },
+  async ({ topic, compact }) => ({
+    content: [{ type: "text", text: getNavigationPatterns(topic, compact) }],
   })
 );
 
@@ -66,10 +99,21 @@ server.tool(
 
 server.tool(
   "get-state-patterns",
-  "Get state management patterns (Zustand + MMKV). Call this when creating a store or working with global state. Covers Zustand store setup, MMKV persistence adapter, selectors, useShallow, getState() for outside React, and store organization rules.",
-  {},
-  async () => ({
-    content: [{ type: "text", text: getStatePatterns() }],
+  "Get state management patterns (Zustand + MMKV). Call this when creating a store or working with global state. Covers Zustand store setup, MMKV persistence adapter, selectors, useShallow, getState() for outside React, and store organization rules. Use `topic` to get a specific section only.",
+  {
+    topic: z
+      .string()
+      .optional()
+      .describe(
+        "Get a specific section only. Available: zustand, mmkv, mmkv-adapter, store-pattern, selectors, use-shallow, get-state, organization. Omit for full content."
+      ),
+    compact: z
+      .boolean()
+      .optional()
+      .describe("If true, returns rules only without code examples. Much shorter."),
+  },
+  async ({ topic, compact }) => ({
+    content: [{ type: "text", text: getStatePatterns(topic, compact) }],
   })
 );
 
@@ -78,10 +122,21 @@ server.tool(
 
 server.tool(
   "get-api-patterns",
-  "Get API and data fetching patterns (Axios + TanStack Query). Call this when creating API services or data fetching hooks. Covers Axios client with interceptors, domain-grouped services, custom query/mutation hooks, query key conventions, and QueryClient config.",
-  {},
-  async () => ({
-    content: [{ type: "text", text: getApiPatterns() }],
+  "Get API and data fetching patterns (Axios + TanStack Query). Call this when creating API services or data fetching hooks. Covers Axios client with interceptors, domain-grouped services, custom query/mutation hooks, query key conventions, and QueryClient config. Use `topic` to get a specific section only.",
+  {
+    topic: z
+      .string()
+      .optional()
+      .describe(
+        "Get a specific section only. Available: axios-client, services, query-hooks, mutation-hooks, usage, v4-vs-v5, query-keys, query-client-config, rules. Omit for full content."
+      ),
+    compact: z
+      .boolean()
+      .optional()
+      .describe("If true, returns rules only without code examples. Much shorter."),
+  },
+  async ({ topic, compact }) => ({
+    content: [{ type: "text", text: getApiPatterns(topic, compact) }],
   })
 );
 
@@ -90,10 +145,21 @@ server.tool(
 
 server.tool(
   "get-styling-patterns",
-  "Get styling patterns (NativeWind / Tailwind CSS). Call this when styling components. Covers NativeWind v4 className approach, arbitrary values, cssInterop for third-party components, Tailwind config, JS constants, conditional styles, and setup checklist.",
-  {},
-  async () => ({
-    content: [{ type: "text", text: getStylingPatterns() }],
+  "Get styling patterns (NativeWind / Tailwind CSS). Call this when styling components. Covers NativeWind v4 className approach, arbitrary values, cssInterop for third-party components, Tailwind config, JS constants, conditional styles, and setup checklist. Use `topic` to get a specific section only.",
+  {
+    topic: z
+      .string()
+      .optional()
+      .describe(
+        "Get a specific section only. Available: nativewind, arbitrary-values, css-interop, tailwind-config, js-constants, conditional, checklist. Omit for full content."
+      ),
+    compact: z
+      .boolean()
+      .optional()
+      .describe("If true, returns rules only without code examples. Much shorter."),
+  },
+  async ({ topic, compact }) => ({
+    content: [{ type: "text", text: getStylingPatterns(topic, compact) }],
   })
 );
 
@@ -102,10 +168,21 @@ server.tool(
 
 server.tool(
   "get-performance-patterns",
-  "Get performance optimization patterns. Call this when optimizing lists, images, bundle size, or animations. Covers FlashList/FlatList, image optimization, tree-shaking, barrel exports, React Compiler, Concurrent React (useDeferredValue, useTransition), InteractionManager, and Reanimated worklets.",
-  {},
-  async () => ({
-    content: [{ type: "text", text: getPerformancePatterns() }],
+  "Get performance optimization patterns. Call this when optimizing lists, images, bundle size, or animations. Covers LegendList/FlashList/FlatList, image optimization, tree-shaking, barrel exports, Concurrent React (useDeferredValue, useTransition), InteractionManager, and Reanimated worklets. Use `topic` to get a specific section only.",
+  {
+    topic: z
+      .string()
+      .optional()
+      .describe(
+        "Get a specific section only. Available: lists, images, tree-shaking, barrel-exports, bundle, concurrent, interaction-manager, reanimated, checklist. Omit for full content."
+      ),
+    compact: z
+      .boolean()
+      .optional()
+      .describe("If true, returns rules only without code examples. Much shorter."),
+  },
+  async ({ topic, compact }) => ({
+    content: [{ type: "text", text: getPerformancePatterns(topic, compact) }],
   })
 );
 
@@ -114,10 +191,21 @@ server.tool(
 
 server.tool(
   "get-project-structure",
-  "Get project folder structure and file placement guide. Call this when deciding where to place a new file. Covers the full folder tree, where to put screens/components/hooks/services/stores/types/constants, naming conventions, and import aliases.",
-  {},
-  async () => ({
-    content: [{ type: "text", text: getProjectStructure() }],
+  "Get project folder structure and file placement guide. Call this when deciding where to place a new file. Covers the full folder tree, where to put screens/components/hooks/services/stores/types/constants, naming conventions, and import aliases. Use `topic` to get a specific section only.",
+  {
+    topic: z
+      .string()
+      .optional()
+      .describe(
+        "Get a specific section only. Available: folder-tree, file-placement, naming, import-aliases. Omit for full content."
+      ),
+    compact: z
+      .boolean()
+      .optional()
+      .describe("If true, returns rules only without code examples. Much shorter."),
+  },
+  async ({ topic, compact }) => ({
+    content: [{ type: "text", text: getProjectStructure(topic, compact) }],
   })
 );
 
@@ -126,10 +214,21 @@ server.tool(
 
 server.tool(
   "get-typescript-patterns",
-  "Get TypeScript patterns for React Native. Call this when writing types or interfaces. Covers strict mode config, path aliases, model types, API response types, route param typing, props interface naming, store types, generics for reusable hooks, as const, and discriminated unions.",
-  {},
-  async () => ({
-    content: [{ type: "text", text: getTypescriptPatterns() }],
+  "Get TypeScript patterns for React Native. Call this when writing types or interfaces. Covers strict mode config, model types, API response types, route param typing, props interface naming, store types, generics for reusable hooks, as const, discriminated unions, and type guards. Use `topic` to get a specific section only.",
+  {
+    topic: z
+      .string()
+      .optional()
+      .describe(
+        "Get a specific section only. Available: strict-config, route-params, api-types, model-types, props-naming, store-types, generics, as-const, discriminated-unions, type-guards. Omit for full content."
+      ),
+    compact: z
+      .boolean()
+      .optional()
+      .describe("If true, returns rules only without code examples. Much shorter."),
+  },
+  async ({ topic, compact }) => ({
+    content: [{ type: "text", text: getTypescriptPatterns(topic, compact) }],
   })
 );
 
@@ -138,10 +237,21 @@ server.tool(
 
 server.tool(
   "get-memory-optimization",
-  "Get memory optimization patterns. Call this when debugging memory leaks or performance issues. Covers useEffect cleanup (listeners, timers, InteractionManager), closure memory leaks, React Native DevTools memory profiler, view flattening, R8 shrinking for Android, and a common memory leak sources checklist.",
-  {},
-  async () => ({
-    content: [{ type: "text", text: getMemoryOptimization() }],
+  "Get memory optimization patterns. Call this when debugging memory leaks or performance issues. Covers useEffect cleanup (listeners, timers), closure memory leaks, React Native DevTools memory profiler, view flattening, R8 shrinking for Android, and a common memory leak sources checklist. Use `topic` to get a specific section only.",
+  {
+    topic: z
+      .string()
+      .optional()
+      .describe(
+        "Get a specific section only. Available: useeffect-cleanup, event-listeners, timers, closures, devtools-profiler, frame-budget, view-flattening, r8, checklist. Omit for full content."
+      ),
+    compact: z
+      .boolean()
+      .optional()
+      .describe("If true, returns rules only without code examples. Much shorter."),
+  },
+  async ({ topic, compact }) => ({
+    content: [{ type: "text", text: getMemoryOptimization(topic, compact) }],
   })
 );
 

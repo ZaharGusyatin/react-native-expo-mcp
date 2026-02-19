@@ -1,13 +1,15 @@
-export const getScreenArchitecture = (): string => {
-  return `# Screen Architecture: Logic/UI Separation
+import { PatternSections, resolvePattern } from './pattern-helper';
 
-## The Core Rule
+// ─── Full sections (with code examples) ─────────────────────────────
+
+const sections: Record<string, string> = {
+  'core-rule': `## The Core Rule
 
 Every screen is ALWAYS split into 2 parts:
 1. **Route file** (in \`app/\`) — contains ONLY logic (hooks, store, handlers, navigation)
-2. **Screen UI** (in \`src/screens/\`) — contains ONLY UI (props-driven, no hooks except UI-specific)
+2. **Screen UI** (in \`src/screens/\`) — contains ONLY UI (props-driven, no hooks except UI-specific)`,
 
-## Route File (app/) — Logic
+  'route-file': `## Route File (app/) — Logic
 
 \`\`\`tsx
 // app/(auth)/login.tsx
@@ -44,9 +46,9 @@ const LoginRoute = () => {
 };
 
 export default LoginRoute;
-\`\`\`
+\`\`\``,
 
-## Screen UI (src/screens/) — Pure UI
+  'screen-ui': `## Screen UI (src/screens/) — Pure UI
 
 \`\`\`tsx
 // src/screens/LoginScreenUI.tsx
@@ -102,9 +104,9 @@ const LoginScreenUI = ({
 };
 
 export default LoginScreenUI;
-\`\`\`
+\`\`\``,
 
-## Rules
+  rules: `## Rules
 
 1. **Route file** (\`app/*.tsx\`):
    - Imports store hooks, API hooks, navigation
@@ -118,14 +120,57 @@ export default LoginScreenUI;
    - Naming: \`LoginScreenUI\`, \`ProfileScreenUI\`, \`CatalogScreenUI\`
    - Props interface naming: \`LoginScreenUIProps\`, \`ProfileScreenUIProps\`
 
-3. **UI components do NOT depend on navigation** — no \`router.push()\` inside UI
+3. **UI components do NOT depend on navigation** — no \`router.push()\` inside UI`,
 
-## Benefits
+  benefits: `## Benefits
 
 - UI is independently testable (just pass mock props)
 - Easy to swap navigation libraries
 - UI is reusable with different logic
 - Easy to find code: logic in route file, UI in src/screens/
-- Follows SOLID: Single Responsibility Principle
-`;
-}
+- Follows SOLID: Single Responsibility Principle`,
+};
+
+// ─── Compact sections (rules only, no code) ─────────────────────────
+
+const compactSections: Record<string, string> = {
+  'core-rule': `## Core Rule
+- Every screen = 2 files: Route file (logic) + Screen UI (pure UI)
+- Route file in \`app/\` — hooks, store, handlers, navigation
+- Screen UI in \`src/screens/\` — props-driven, no direct dependencies`,
+
+  'route-file': `## Route File
+- Located in \`app/\` directory
+- Imports store hooks, API hooks, navigation
+- Handles business logic, passes everything via props to Screen UI
+- Naming: \`LoginRoute\`, \`ProfileRoute\`, \`CatalogRoute\``,
+
+  'screen-ui': `## Screen UI
+- Located in \`src/screens/\`
+- Receives EVERYTHING via props — no store/API/navigation imports
+- Testable in isolation (just pass mock props)
+- Naming: \`LoginScreenUI\`, \`ProfileScreenUI\`
+- Props: \`LoginScreenUIProps\`, \`ProfileScreenUIProps\``,
+
+  rules: `## Rules
+- Route file: imports hooks, handles logic, passes props to Screen UI
+- Screen UI: props-driven, no direct dependencies, testable in isolation
+- UI components NEVER depend on navigation — no \`router.push()\` inside UI`,
+
+  benefits: `## Benefits
+- UI independently testable (mock props)
+- Easy to swap navigation libraries
+- UI reusable with different logic
+- Follows SOLID: Single Responsibility Principle`,
+};
+
+// ─── Export ──────────────────────────────────────────────────────────
+
+const pattern: PatternSections = {
+  title: 'Screen Architecture: Logic/UI Separation',
+  sections,
+  compactSections,
+};
+
+export const getScreenArchitecture = (topic?: string, compact?: boolean): string =>
+  resolvePattern(pattern, topic, compact);

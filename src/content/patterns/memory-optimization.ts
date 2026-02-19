@@ -1,7 +1,9 @@
-export const getMemoryOptimization = (): string => {
-  return `# Memory Optimization
+import { PatternSections, resolvePattern } from './pattern-helper';
 
-## useEffect Cleanup — Always Return a Cleanup Function
+// ─── Full sections (with code examples) ─────────────────────────────
+
+const sections: Record<string, string> = {
+  'useeffect-cleanup': `## useEffect Cleanup — Always Return a Cleanup Function
 
 Every \`useEffect\` that creates a side effect must return a cleanup function:
 
@@ -16,9 +18,9 @@ useEffect(() => {
 useEffect(() => {
   eventEmitter.addListener('event', handler); // never cleaned up
 }, []);
-\`\`\`
+\`\`\``,
 
-## Event Listener Cleanup
+  'event-listeners': `## Event Listener Cleanup
 
 \`\`\`tsx
 import { AppState, AppStateStatus, Keyboard } from 'react-native';
@@ -39,9 +41,9 @@ function MyComponent() {
     };
   }, []);
 }
-\`\`\`
+\`\`\``,
 
-## Timer Cleanup
+  timers: `## Timer Cleanup
 
 \`\`\`tsx
 function PollingComponent() {
@@ -63,9 +65,9 @@ function DelayedAction() {
     return () => clearTimeout(timeout); // cancel if component unmounts first
   }, []);
 }
-\`\`\`
+\`\`\``,
 
-## Closure Memory Leaks
+  closures: `## Closure Memory Leaks
 
 Closures capture references. Capture only the specific values you need:
 
@@ -80,9 +82,9 @@ const userId = user.id;
 useEffect(() => {
   analytics.identify(userId);
 }, [userId]);
-\`\`\`
+\`\`\``,
 
-## React Native DevTools Memory Profiler
+  'devtools-profiler': `## React Native DevTools Memory Profiler
 
 Use React Native DevTools to identify memory leaks:
 
@@ -99,9 +101,9 @@ Use React Native DevTools to identify memory leaks:
 - **Shallow size** — memory held by the object itself
 - **Retained size** — memory that would be freed if this object were collected
 
-**Red flag:** Objects from a screen still present in memory after navigating away.
+**Red flag:** Objects from a screen still present in memory after navigating away.`,
 
-## 16ms Frame Budget (60 FPS)
+  'frame-budget': `## 16ms Frame Budget (60 FPS)
 
 Each frame must render in 16ms for 60 FPS (8ms for 120 FPS ProMotion). Exceeding this causes dropped frames.
 
@@ -109,9 +111,11 @@ Each frame must render in 16ms for 60 FPS (8ms for 120 FPS ProMotion). Exceeding
 - **UI thread**: layout, painting, touch handling
 - **Reanimated worklets**: run on UI thread, never block JS
 
-Keep heavy synchronous work off both threads. Use \`InteractionManager\` to defer expensive operations after animations.
+Keep heavy synchronous work off both threads.
 
-## View Flattening
+> Defer heavy work after animations with InteractionManager — see \`get-performance-patterns\` (topic: interaction-manager).`,
+
+  'view-flattening': `## View Flattening
 
 React Native automatically flattens "layout-only" nodes in the view hierarchy (New Architecture). This reduces depth and improves render performance.
 
@@ -127,33 +131,9 @@ When a child view gets unexpectedly flattened inside a native component expectin
 
 **Debug view hierarchy:**
 - **iOS**: Xcode → "Debug View Hierarchy" button in debug toolbar
-- **Android**: Android Studio → View > Tool Windows > Layout Inspector
+- **Android**: Android Studio → View > Tool Windows > Layout Inspector`,
 
-## InteractionManager for Post-Animation Work
-
-Defer heavy operations until after navigation animations complete:
-
-\`\`\`tsx
-import { InteractionManager } from 'react-native';
-
-function HeavyScreen() {
-  const [isReady, setIsReady] = useState(false);
-
-  useEffect(() => {
-    const task = InteractionManager.runAfterInteractions(() => {
-      setIsReady(true);
-      loadHeavyData();
-    });
-
-    return () => task.cancel(); // cancel if unmounted before interactions finish
-  }, []);
-
-  if (!isReady) return <SkeletonPlaceholder />;
-  return <HeavyContent />;
-}
-\`\`\`
-
-## R8 Shrinking on Android
+  r8: `## R8 Shrinking on Android
 
 R8 shrinks, optimizes, and obfuscates your APK. Enable in production:
 
@@ -178,9 +158,9 @@ Add ProGuard rules for libraries using reflection:
 # android/app/proguard-rules.pro
 -keep class io.invertase.firebase.** { *; }
 -dontwarn io.invertase.firebase.**
-\`\`\`
+\`\`\``,
 
-## Common Memory Leak Sources Checklist
+  checklist: `## Common Memory Leak Sources Checklist
 
 - [ ] \`useEffect\` with event listeners missing cleanup
 - [ ] \`setInterval\`/\`setTimeout\` not cleared on unmount
@@ -188,6 +168,64 @@ Add ProGuard rules for libraries using reflection:
 - [ ] Closures capturing entire objects instead of specific values
 - [ ] Image cache growing unbounded (configure \`cachePolicy\` on expo-image)
 - [ ] Animation shared values holding references to large data structures
-- [ ] Native event subscriptions not removed (AppState, Keyboard, Dimensions)
-`;
-}
+- [ ] Native event subscriptions not removed (AppState, Keyboard, Dimensions)`,
+};
+
+// ─── Compact sections (rules only, no code) ─────────────────────────
+
+const compactSections: Record<string, string> = {
+  'useeffect-cleanup': `## useEffect Cleanup
+- EVERY useEffect with side effects MUST return a cleanup function
+- Cleanup runs on unmount and before re-running the effect`,
+
+  'event-listeners': `## Event Listeners
+- Always \`.remove()\` subscriptions in cleanup: AppState, Keyboard, Dimensions
+- Store subscription reference: \`const sub = addEventListener(...)\``,
+
+  timers: `## Timers
+- \`clearInterval(id)\` and \`clearTimeout(id)\` in cleanup
+- Never leave timers running after unmount`,
+
+  closures: `## Closures
+- Capture specific values, not entire objects: \`const userId = user.id\`
+- Prevents keeping stale references alive`,
+
+  'devtools-profiler': `## Memory Profiler
+- React Native DevTools → Memory tab → Heap snapshots
+- Compare snapshots before/after navigation
+- Red flag: objects from unmounted screens still in memory`,
+
+  'frame-budget': `## Frame Budget
+- 16ms per frame (60 FPS) / 8ms (120 FPS)
+- JS thread: logic, state, reconciliation
+- UI thread: layout, painting, touch
+- Defer heavy work with InteractionManager — see \`get-performance-patterns\``,
+
+  'view-flattening': `## View Flattening
+- RN auto-flattens layout-only views (New Architecture)
+- Use \`collapsable={false}\` to prevent unwanted flattening
+- Debug: Xcode View Hierarchy (iOS), Layout Inspector (Android)`,
+
+  r8: `## R8 (Android)
+- Enable \`minifyEnabled true\` + \`shrinkResources true\` for release builds
+- Add ProGuard keep rules for reflection-using libraries
+- ~33% APK size reduction`,
+
+  checklist: `## Leak Checklist
+- [ ] useEffect cleanup for listeners/timers
+- [ ] AbortController for async operations
+- [ ] Specific value captures in closures
+- [ ] expo-image cachePolicy configured
+- [ ] Native subscriptions removed`,
+};
+
+// ─── Export ──────────────────────────────────────────────────────────
+
+const pattern: PatternSections = {
+  title: 'Memory Optimization',
+  sections,
+  compactSections,
+};
+
+export const getMemoryOptimization = (topic?: string, compact?: boolean): string =>
+  resolvePattern(pattern, topic, compact);
