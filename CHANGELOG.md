@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.2] - 2026-03-10
+
+### Fixed
+- Added `expo-linking` to NativeWind install step in `setup-project.ts` — required by `expo-router` (fixes "Unable to resolve expo-linking" bundling error)
+
+---
+
 ## [2.1.1] - 2026-03-10
 
 ### Changed
