@@ -159,7 +159,7 @@ loginMutation.mutate(
 import CatalogScreenUI from '@/screens/CatalogScreenUI';
 import { useProducts } from '@/hooks/useProducts';
 
-export default function CatalogRoute() {
+const CatalogRoute = () => {
   const { data, isPending, error, refetch } = useProducts();
   // v5: isPending (not isLoading) for queries without data yet
 
@@ -171,7 +171,9 @@ export default function CatalogRoute() {
       onRefresh={refetch}
     />
   );
-}
+};
+
+export default CatalogRoute;
 \`\`\``,
 
   'v4-vs-v5': `## v4 vs v5 Key Differences
@@ -219,13 +221,15 @@ const queryClient = new QueryClient({
   },
 });
 
-export default function RootLayout() {
+const RootLayout = () => {
   return (
     <QueryClientProvider client={queryClient}>
       {/* ... */}
     </QueryClientProvider>
   );
-}
+};
+
+export default RootLayout;
 \`\`\``,
 
   rules: `## Rules

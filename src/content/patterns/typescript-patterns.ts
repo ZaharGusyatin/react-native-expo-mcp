@@ -26,13 +26,15 @@ type ProductParams = {
   category?: string;
 };
 
-export default function ProductRoute() {
+const ProductRoute = () => {
   const { id, category } = useLocalSearchParams<ProductParams>();
   // id: string, category: string | undefined
 
   const { data } = useProduct(id);
   return <ProductScreenUI product={data} category={category} />;
-}
+};
+
+export default ProductRoute;
 \`\`\``,
 
   'api-types': `## API Response Types
@@ -149,13 +151,13 @@ function useApiQuery<T>(
 }
 
 // Typed domain hook built on top
-export function useProducts(page = 1) {
+export const useProducts = (page = 1) => {
   return useApiQuery<PaginatedResponse<Product>>(
     ['products', page],
     () => productService.getAll({ page }),
     { staleTime: 60_000 }
   );
-}
+};
 \`\`\``,
 
   'as-const': `## \`as const\` for Configuration Objects
@@ -189,13 +191,13 @@ type ScreenState<T> =
   | { status: 'empty' }
   | { status: 'success'; data: T };
 
-function ProductScreenUI({ state }: { state: ScreenState<Product[]> }) {
+const ProductScreenUI = ({ state }: { state: ScreenState<Product[]> }) => {
   if (state.status === 'loading') return <LoadingSpinner />;
   if (state.status === 'error') return <ErrorView message={state.message} />;
   if (state.status === 'empty') return <EmptyState />;
   // TypeScript narrows: state.data is Product[]
   return <ProductList data={state.data} />;
-}
+};
 \`\`\``,
 
   'type-guards': `## Type Guards
@@ -203,9 +205,9 @@ function ProductScreenUI({ state }: { state: ScreenState<Product[]> }) {
 \`\`\`tsx
 import { AxiosError } from 'axios';
 
-function isAxiosError(error: unknown): error is AxiosError {
+const isAxiosError = (error: unknown): error is AxiosError => {
   return (error as AxiosError).isAxiosError === true;
-}
+};
 
 // Usage in mutation error handler
 onError: (error) => {
@@ -259,7 +261,7 @@ const compactSections: Record<string, string> = {
 - TypeScript narrows type after checking \`status\``,
 
   'type-guards': `## Type Guards
-- \`function isX(val: unknown): val is X\` pattern
+- \`const isX = (val: unknown): val is X => { ... }\` pattern
 - Common: \`isAxiosError\` for typed error handling`,
 };
 

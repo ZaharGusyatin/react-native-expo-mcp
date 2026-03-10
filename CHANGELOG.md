@@ -7,6 +7,10 @@
 - Added "Code Style" rule in `claude-md.ts` — enforces `const` arrow functions, forbids `function` declarations and anonymous default exports
 - Replaced `React.memo` recommendation with **React Compiler** (`babel-plugin-react-compiler`) — auto-memoization, no manual `React.memo`/`useMemo`/`useCallback`
 - Added "Language" rule in `claude-md.ts` — all generated code, comments, and files must be in English
+- Pattern files: converted `function` declarations to `const` arrow functions in code examples (`api-patterns.ts`, `memory-optimization.ts`, `navigation-patterns.ts`, `typescript-patterns.ts`)
+
+### Fixed
+- Added `react-native-worklets` to NativeWind install step in `setup-project.ts` — required by `react-native-reanimated` v4+
 
 ---
 

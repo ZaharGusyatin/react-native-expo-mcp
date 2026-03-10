@@ -30,7 +30,7 @@ Enable strict mode and path aliases in \`tsconfig.json\`.
 ## Step 3: Install NativeWind v4
 
 \`\`\`bash
-npx expo install nativewind tailwindcss react-native-reanimated react-native-safe-area-context
+npx expo install nativewind tailwindcss react-native-reanimated react-native-worklets react-native-safe-area-context
 \`\`\`
 
 Create the following config files: \`global.css\`, \`tailwind.config.js\`, \`metro.config.js\`, \`nativewind-env.d.ts\`.

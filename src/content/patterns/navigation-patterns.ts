@@ -50,7 +50,7 @@ const queryClient = new QueryClient({
   },
 });
 
-export default function RootLayout() {
+const RootLayout = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <Stack screenOptions={{ headerShown: false }}>
@@ -59,7 +59,9 @@ export default function RootLayout() {
       </Stack>
     </QueryClientProvider>
   );
-}
+};
+
+export default RootLayout;
 \`\`\`
 
 ### Tab Layout

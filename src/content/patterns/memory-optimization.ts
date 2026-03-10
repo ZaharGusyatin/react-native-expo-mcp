@@ -25,7 +25,7 @@ useEffect(() => {
 \`\`\`tsx
 import { AppState, AppStateStatus, Keyboard } from 'react-native';
 
-function MyComponent() {
+const MyComponent = () => {
   useEffect(() => {
     const appStateSub = AppState.addEventListener('change', (state: AppStateStatus) => {
       if (state === 'active') syncData();
@@ -40,13 +40,13 @@ function MyComponent() {
       keyboardHideSub.remove();
     };
   }, []);
-}
+};
 \`\`\``,
 
   timers: `## Timer Cleanup
 
 \`\`\`tsx
-function PollingComponent() {
+const PollingComponent = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       fetchLatestData();
@@ -54,9 +54,9 @@ function PollingComponent() {
 
     return () => clearInterval(interval); // stop polling on unmount
   }, []);
-}
+};
 
-function DelayedAction() {
+const DelayedAction = () => {
   useEffect(() => {
     const timeout = setTimeout(() => {
       performAction();
@@ -64,7 +64,7 @@ function DelayedAction() {
 
     return () => clearTimeout(timeout); // cancel if component unmounts first
   }, []);
-}
+};
 \`\`\``,
 
   closures: `## Closure Memory Leaks
