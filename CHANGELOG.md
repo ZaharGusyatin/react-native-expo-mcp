@@ -5,6 +5,8 @@
 ### Changed
 - All generated code in `project-files.ts` now uses `const` arrow functions instead of `function` declarations (routes, components, hooks)
 - Added "Code Style" rule in `claude-md.ts` — enforces `const` arrow functions, forbids `function` declarations and anonymous default exports
+- Replaced `React.memo` recommendation with **React Compiler** (`babel-plugin-react-compiler`) — auto-memoization, no manual `React.memo`/`useMemo`/`useCallback`
+- Added "Language" rule in `claude-md.ts` — all generated code, comments, and files must be in English
 
 ---
 

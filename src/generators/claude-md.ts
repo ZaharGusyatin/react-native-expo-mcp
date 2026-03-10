@@ -100,7 +100,7 @@ This project uses the \`react-native-expo-mcp\` server. Claude should call these
 - Use \`Pressable\` instead of \`TouchableOpacity\`
 - Use \`expo-image\` instead of \`Image\`
 - Use \`className\` (NativeWind) for styles
-- \`React.memo\` for list item components
+- Enable **React Compiler** (\`babel-plugin-react-compiler\`) — it auto-memoizes components, hooks, and dependencies. Do NOT use \`React.memo\`, \`useMemo\`, or \`useCallback\` manually
 - Composable pattern for complex components (ProductCard.Image, ProductCard.Title)
 
 ### State Management
@@ -141,5 +141,9 @@ This project uses the \`react-native-expo-mcp\` server. Claude should call these
 - WebP format for all images
 - Direct submodule imports to enable tree-shaking (avoid barrel exports)
 - Reanimated worklets for 60+ FPS animations
+
+### Language
+- **All generated code, comments, and file content must be in English** — regardless of the user's language
+- Variable names, component names, types, and comments — always English
 `;
 }
