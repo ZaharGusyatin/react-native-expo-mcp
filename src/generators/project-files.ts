@@ -174,7 +174,7 @@ interface ButtonProps {
   disabled?: boolean;
 }
 
-export function Button({ title, onPress, variant = 'primary', disabled }: ButtonProps) {
+export const Button = ({ title, onPress, variant = 'primary', disabled }: ButtonProps) => {
   const base = 'rounded-xl py-3 px-6 items-center';
   const variants = {
     primary: 'bg-primary active:bg-primary-dark',
@@ -196,7 +196,7 @@ export function Button({ title, onPress, variant = 'primary', disabled }: Button
       <Text className={textStyles[variant]}>{title}</Text>
     </Pressable>
   );
-}`,
+};`,
     },
     {
       path: "babel.config.js",
@@ -293,7 +293,7 @@ const queryClient = new QueryClient({
   },
 });
 
-function useProtectedRoute(isAuthenticated: boolean) {
+const useProtectedRoute = (isAuthenticated: boolean) => {
   const segments = useSegments();
   const router = useRouter();
   const navigationRef = useNavigationContainerRef();
@@ -315,9 +315,9 @@ function useProtectedRoute(isAuthenticated: boolean) {
       router.replace('/(tabs)');
     }
   }, [isAuthenticated, segments, isReady]);
-}
+};
 
-export default function RootLayout() {
+const RootLayout = () => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   useProtectedRoute(isAuthenticated);
 
@@ -329,17 +329,21 @@ export default function RootLayout() {
       </Stack>
     </QueryClientProvider>
   );
-}`,
+};
+
+export default RootLayout;`,
     },
     {
       path: "app/(auth)/_layout.tsx",
       content: `import { Stack } from 'expo-router';
 
-export default function AuthLayout() {
+const AuthLayout = () => {
   return (
     <Stack screenOptions={{ headerShown: false }} />
   );
-}`,
+};
+
+export default AuthLayout;`,
     },
     {
       path: "app/(auth)/login.tsx",
@@ -349,7 +353,7 @@ import { useAuthStore } from '@store/auth';
 import { Button } from '@components/ui/Button';
 import { router } from 'expo-router';
 
-export default function LoginRoute() {
+const LoginRoute = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const setAuth = useAuthStore((s) => s.setAuth);
@@ -386,14 +390,16 @@ export default function LoginRoute() {
       </Text>
     </View>
   );
-}`,
+};
+
+export default LoginRoute;`,
     },
     {
       path: "app/(tabs)/_layout.tsx",
       content: `import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function TabsLayout() {
+const TabsLayout = () => {
   return (
     <Tabs screenOptions={{ headerShown: true }}>
       <Tabs.Screen
@@ -425,14 +431,16 @@ export default function TabsLayout() {
       />
     </Tabs>
   );
-}`,
+};
+
+export default TabsLayout;`,
     },
     {
       path: "app/(tabs)/index.tsx",
       content: `import { View, Text } from 'react-native';
 import { useAuthStore } from '@store/auth';
 
-export default function HomeRoute() {
+const HomeRoute = () => {
   const user = useAuthStore((s) => s.user);
 
   return (
@@ -441,20 +449,24 @@ export default function HomeRoute() {
       <Text className="text-gray-500 mt-2">Welcome to ${appName}</Text>
     </View>
   );
-}`,
+};
+
+export default HomeRoute;`,
     },
     {
       path: "app/(tabs)/catalog.tsx",
       content: `import { View, Text } from 'react-native';
 
-export default function CatalogRoute() {
+const CatalogRoute = () => {
   return (
     <View className="flex-1 bg-background items-center justify-center p-6">
       <Text className="text-2xl font-bold">Catalog</Text>
       <Text className="text-gray-500 mt-2">Product list goes here</Text>
     </View>
   );
-}`,
+};
+
+export default CatalogRoute;`,
     },
     {
       path: "app/(tabs)/profile.tsx",
@@ -462,7 +474,7 @@ export default function CatalogRoute() {
 import { useAuthStore } from '@store/auth';
 import { Button } from '@components/ui/Button';
 
-export default function ProfileRoute() {
+const ProfileRoute = () => {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
 
@@ -475,7 +487,9 @@ export default function ProfileRoute() {
       </View>
     </View>
   );
-}`,
+};
+
+export default ProfileRoute;`,
     },
     {
       path: "app/(auth)/register.tsx",
@@ -485,7 +499,7 @@ import { useAuthStore } from '@store/auth';
 import { Button } from '@components/ui/Button';
 import { router } from 'expo-router';
 
-export default function RegisterRoute() {
+const RegisterRoute = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -529,7 +543,9 @@ export default function RegisterRoute() {
       </Text>
     </View>
   );
-}`,
+};
+
+export default RegisterRoute;`,
     },
   ];
 }
@@ -544,12 +560,12 @@ import { StateStorage } from 'zustand/middleware';
 
 let _storage: MMKV | null = null;
 
-function getStorage(): MMKV {
+const getStorage = (): MMKV => {
   if (!_storage) {
     _storage = new MMKV();
   }
   return _storage;
-}
+};
 
 export const zustandStorage: StateStorage = {
   getItem: (name: string) => {
@@ -661,9 +677,9 @@ interface EnvConfig {
   ANALYTICS_KEY: string;
 }
 
-export function getEnvConfig(): EnvConfig {
+export const getEnvConfig = (): EnvConfig => {
   return envConfig as EnvConfig;
-}
+};
 
 export const config = {
   get apiUrl() { return getEnvConfig().API_URL; },

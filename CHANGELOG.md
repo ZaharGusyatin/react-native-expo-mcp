@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.1.1] - 2026-03-10
+
+### Changed
+- All generated code in `project-files.ts` now uses `const` arrow functions instead of `function` declarations (routes, components, hooks)
+- Added "Code Style" rule in `claude-md.ts` — enforces `const` arrow functions, forbids `function` declarations and anonymous default exports
+
+---
+
 ## [2.1.0] - 2026-02-19
 
 ### Added

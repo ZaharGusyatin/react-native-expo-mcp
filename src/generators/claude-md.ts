@@ -89,6 +89,13 @@ This project uses the \`react-native-expo-mcp\` server. Claude should call these
 
 ## Code Rules
 
+### Code Style
+- **Always use \`const\` arrow functions** — never \`function\` declarations
+- Routes: \`const MyRoute = () => {...}; export default MyRoute;\`
+- Components: \`export const Button = ({...}: Props) => {...};\`
+- Hooks: \`const useMyHook = () => {...};\`
+- Never use anonymous default exports: \`export default () => {}\`
+
 ### Components
 - Use \`Pressable\` instead of \`TouchableOpacity\`
 - Use \`expo-image\` instead of \`Image\`
