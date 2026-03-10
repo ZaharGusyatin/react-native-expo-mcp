@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.1.3] - 2026-03-10
+
+### Fixed
+- Pinned `tailwindcss@3` instead of `tailwindcss` — NativeWind v4 is incompatible with Tailwind CSS v4 (npm latest)
+- Moved `nativewind/babel` from `plugins` to `presets` in babel.config.js — it's a preset, not a plugin
+- Added `react-dom` to install step — required peer dependency of `expo-router`
+- Fixed `react-compiler/babel` → `babel-plugin-react-compiler` in generated babel.config.js
+- Updated styling-patterns checklist to specify nativewind/babel goes in presets
+
+---
+
 ## [2.1.2] - 2026-03-10
 
 ### Fixed

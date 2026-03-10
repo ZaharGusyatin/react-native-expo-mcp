@@ -78,7 +78,7 @@ ${cleanupInstructions}
 
 After creating the files:
 \`\`\`bash
-npm install babel-plugin-module-resolver babel-plugin-react-compiler
+npx expo install babel-plugin-module-resolver babel-plugin-react-compiler
 npm install
 npx expo prebuild --clean
 npx expo run:ios     # or npx expo run:android
@@ -203,10 +203,12 @@ export const Button = ({ title, onPress, variant = 'primary', disabled }: Button
       content: `module.exports = function (api) {
   api.cache(true);
   return {
-    presets: ['babel-preset-expo'],
-    plugins: [
-      'react-compiler/babel',
+    presets: [
+      'babel-preset-expo',
       'nativewind/babel',
+    ],
+    plugins: [
+      ['babel-plugin-react-compiler', { target: '19' }],
       [
         'module-resolver',
         {

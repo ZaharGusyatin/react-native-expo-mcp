@@ -30,7 +30,7 @@ Enable strict mode and path aliases in \`tsconfig.json\`.
 ## Step 3: Install NativeWind v4
 
 \`\`\`bash
-npx expo install nativewind tailwindcss react-native-reanimated react-native-worklets react-native-safe-area-context expo-linking
+npx expo install nativewind tailwindcss@3 react-native-reanimated react-native-worklets react-native-safe-area-context expo-linking react-dom
 \`\`\`
 
 Create the following config files: \`global.css\`, \`tailwind.config.js\`, \`metro.config.js\`, \`nativewind-env.d.ts\`.
@@ -64,7 +64,10 @@ npx expo install babel-plugin-module-resolver
 \`\`\`js
 // babel.config.js
 module.exports = {
-  presets: ['babel-preset-expo'],
+  presets: [
+    'babel-preset-expo',
+    'nativewind/babel',
+  ],
   plugins: [
     // React Compiler (React 19+ / Expo SDK 52+)
     ['babel-plugin-react-compiler', { target: '19' }],
@@ -81,7 +84,6 @@ module.exports = {
         '@constants': './src/constants',
       },
     }],
-    'nativewind/babel',
   ],
 };
 \`\`\`

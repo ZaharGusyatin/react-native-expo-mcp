@@ -143,7 +143,7 @@ If a value (color, size, spacing) is used in 2+ files — it belongs in \`consta
 3. \`metro.config.js\` — \`withNativeWind(config, { input: "./global.css" })\`
 4. \`nativewind-env.d.ts\` — \`/// <reference types="nativewind/types" />\`
 5. \`app/_layout.tsx\` — \`import '../global.css';\`
-6. \`babel.config.js\` — \`'nativewind/babel'\` in plugins`,
+6. \`babel.config.js\` — \`'nativewind/babel'\` in presets (NOT plugins)`,
 };
 
 // ─── Compact sections (rules only, no code) ─────────────────────────
